@@ -1,7 +1,17 @@
 import pandas as pd
 import re
+import networkx as nx
 from webweb import Web
 
+
+def get_subgraphs(graph):
+    import networkx as nx
+    components = list(nx.connected_components(graph))
+    list_subgraphs = []
+    for component in components:
+        list_subgraphs.append(graph.subgraph(component))
+
+    return list_subgraphs
 
 df = pd.read_csv('lynguo2.csv', sep=';', error_bad_lines=False)
 stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci','cienciaciudadana']
@@ -19,13 +29,18 @@ print(subset)
 retweetEdges = [list(x) for x in subset.to_numpy()] # Se transforma en una lista
 
 for row in retweetEdges:
-    matchRT = re.search('@(\w+)', row[1]).group(1)  # Se extrae la primera mención que hace referencia a la cuenta retuiteada
-    row[1] = matchRT  # Convierte el nombre de la cuenta en hash y lo asigna al elemento
+    reg = re.search('@(\w+)', row[1])
+    if reg:
+        matchRT = reg.group(1)  # Se extrae la primera mención que hace referencia a la cuenta retuiteada
+        row[1] = matchRT  # Convierte el nombre de la cuenta en hash y lo asigna al elemento
+
 
 dfCitas = pd.DataFrame(retweetEdges)
 dfCitas.to_csv('retweetEdges.csv', header=False, index=False, sep=';')
-
-web = Web(retweetEdges)
+G = nx.Graph()
+G.add_edges_from(retweetEdges)
+subgraphs = get_subgraphs(G)
+web = Web(nx_G=subgraphs[1])
 web.display.gravity = 1
 
 # show the visualization
