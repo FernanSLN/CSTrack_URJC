@@ -32,10 +32,6 @@ for row in mentionsList:
 
 web = Web(mentionEdges)
 
-web.display.gravity = 1
-
-web.show()
-
 G = nx.Graph()
 
 G.add_edges_from(mentionEdges)
@@ -55,12 +51,6 @@ def get_subgraphs(graph):
 
 subgraphs = get_subgraphs(G)
 
-web1 = Web(nx_G= nx.Graph(subgraphs[1]))
-
-web1.display.gravity = 1
-
-web1.show()
-
 print(len(get_subgraphs(G)))
 
 web1= Web(nx_G=subgraphs[1])
@@ -69,7 +59,6 @@ web1.networks.add_layer(nx_G=subgraphs[2])
 
 web1.networks.add_layer(nx_G=subgraphs[3])
 
-web1.display.networkName = 'web1'
 
 citas = Web(title="citas", nx_G=subgraphs[0])
 
