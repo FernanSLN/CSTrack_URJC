@@ -40,8 +40,12 @@ dfCitas.to_csv('retweetEdges.csv', header=False, index=False, sep=';')
 G = nx.Graph()
 G.add_edges_from(retweetEdges)
 subgraphs = get_subgraphs(G)
-web = Web(nx_G=subgraphs[1])
+web = Web(title="retweets", nx_G=subgraphs[0])
 web.display.gravity = 1
+
+name ="graph"
+for i in range(1, len(subgraphs)):
+    web.networks.retweets.add_layer(nx_G=subgraphs[i])
 
 # show the visualization
 web.show()
