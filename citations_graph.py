@@ -71,14 +71,14 @@ web1.networks.add_layer(nx_G=subgraphs[3])
 
 web1.display.networkName = 'web1'
 
-web.show()
+citas = Web(title="citas", nx_G=subgraphs[0])
 
-H= G.subgraph(subgraphs[1])
+for i in range(1, len(subgraphs)):
+    citas.networks.add(nx_G=subgraphs[i])
 
-nx.draw(H)
+citas.display.gravity=1
 
-nx.draw(Gmax)
-
+citas.show()
 
 
 
