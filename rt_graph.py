@@ -13,7 +13,7 @@ G = nx.Graph()
 G.add_edges_from(retweetEdges)
 subgraphs = utils.get_subgraphs(G)
 subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
-web = Web(title="retweets", nx_G=subgraphs[1])
+web = Web(title="retweets", nx_G=subgraphs[0])
 web.display.gravity = 1
 
 name ="graph"
