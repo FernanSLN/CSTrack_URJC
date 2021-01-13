@@ -30,6 +30,7 @@ def get_retweets(filename):
     # CALCULAR GRAFO RTs
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
+    print(idx)
     dfRT = dfRT[idx]  # Se seleccionan sólo las filas con RT
     subset = dfRT[['Usuario', 'Texto']]  # Se descarta la fecha
     retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
