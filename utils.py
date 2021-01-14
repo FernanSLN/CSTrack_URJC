@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 import numpy as np
-#import graph_tool as gt
+import graph_tool as gt
 
 
 def get_subgraphs(graph):
@@ -151,6 +151,41 @@ def prepare_hashtags2(list):
     hashtagsFinales = [hashtag for hashtag in list if hashtag[0] not in hashtagsOnce]
     hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
     return hashtagsFinales
+    
+
+def get_prop_type(value, key=None):
+    """
+    Performs typing and value conversion for the graph_tool PropertyMap class.
+    If a key is provided, it also ensures the key is in a format that can be
+    used with the PropertyMap. Returns a tuple, (type name, value, key)
+    """
+    if isinstance(key, bytes):
+        # Encode the key as ASCII
+        key = key.encode('ascii', errors='replace')
+
+    # Deal with the value
+    if isinstance(value, bool):
+        tname = 'bool'
+
+    elif isinstance(value, int):
+        tname = 'float'
+        value = float(value)
+
+    elif isinstance(value, float):
+        tname = 'float'
+
+    elif isinstance(value, str):
+        tname = 'string'
+        value = value.encode('ascii', errors='replace')
+
+    elif isinstance(value, dict):
+        tname = 'object'
+
+    else:
+        tname = 'string'
+        value = str(value)
+
+    return tname, value, key
 
 def nx2gt(nxG):
     """
@@ -172,7 +207,7 @@ def nx2gt(nxG):
     # Go through all nodes and edges and add seen properties
     # Add the node properties first
     nprops = set() # cache keys to only add properties once
-    for node, data in nxG.nodes_iter(data=True):
+    for node, data in nxG.nodes(data=True):
 
         # Go through all the properties if not seen and add them.
         for key, val in data.items():
@@ -186,7 +221,6 @@ def nx2gt(nxG):
 
             # Add the key to the already seen properties
             nprops.add(key)
-
     # Also add the node id: in NetworkX a node can be any hashable type, but
     # in graph-tool node are defined as indices. So we capture any strings
     # in a special PropertyMap called 'id' -- modify as needed!
@@ -194,7 +228,7 @@ def nx2gt(nxG):
 
     # Add the edge properties second
     eprops = set() # cache keys to only add properties once
-    for src, dst, data in nxG.edges_iter(data=True):
+    for src, dst, data in nxG.edges(data=True):
 
         # Go through all the edge properties if not seen and add them.
         for key, val in data.items():
@@ -212,7 +246,7 @@ def nx2gt(nxG):
     # Phase 2: Actually add all the nodes and vertices with their properties
     # Add the nodes
     vertices = {} # vertex mapping for tracking edges later
-    for node, data in nxG.nodes_iter(data=True):
+    for node, data in nxG.nodes(data=True):
 
         # Create the vertex and annotate for our edges later
         v = gtG.add_vertex()
@@ -224,7 +258,7 @@ def nx2gt(nxG):
             gtG.vp[key][v] = value # vp is short for vertex_properties
 
     # Add the edges
-    for src, dst, data in nxG.edges_iter(data=True):
+    for src, dst, data in nxG.edges(data=True):
 
         # Look up the vertex structs from our vertices mapping and add edge.
         e = gtG.add_edge(vertices[src], vertices[dst])
