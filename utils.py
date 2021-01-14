@@ -110,3 +110,44 @@ def combined_edges(x,y):
     combined_edges = x + y
     return combined_edges
 
+# Código para calcular grafo de hashtags main
+
+def get_hashtagsmain(filename):
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = df.drop([78202], axis=0)
+    dfMainHashtags = df[['Usuario', 'Texto']].copy()
+    dfMainHashtags = dfMainHashtags.dropna()
+    idx = dfMainHashtags[dfMainHashtags['Texto'].str.match('RT @')]
+    dfMainHashtags = dfMainHashtags.drop(idx.index)
+    subset = dfMainHashtags['Texto']
+    listMainHashtags = subset.to_numpy()
+    return listMainHashtags
+
+def mainHashtags(values):
+    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    mainHashtags = []
+    aristasHashtags = []
+    for row in values:
+        match = re.findall('#(\w+)', row.lower())
+        length = len(match)
+    try:
+        match = [word for word in match if word not in stopwords]
+    except ValueError:
+        pass
+    for index,hashtag in enumerate(match):
+        mainHashtags.append(hashtag)
+        if index | (length-2):
+            nextHashtags = match[index+1:length-1]
+            for nextHashtags in nextHashtags:
+                aristasHashtags.append([hashtag,nextHashtags])
+    return aristasHashtags
+
+def prepare_hashtags2(list):
+    mainHashtags = np.unique(list,return_counts=True)
+    mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
+    sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
+    hashtagsOnce = [t[1] for t in mainHashtags if t[0] == 1]
+    hashtagsFinales = [hashtag for hashtag in list if hashtag[0] not in hashtagsOnce]
+    hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
+    return hashtagsFinales
+
