@@ -31,7 +31,8 @@ def get_retweets(filename, keywords=None, stopwords=None):
     # CALCULAR GRAFO RTs
     if keywords:
         df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
-        df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
+        if stopwords:
+            df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
         df.to_csv("learning.csv")
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
