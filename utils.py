@@ -13,6 +13,14 @@ def get_subgraphs(graph):
     return list_subgraphs
 
 
+def filter_by_topic(df, keywords, stopwords):
+    if keywords:
+        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
+        if stopwords:
+            df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
+        df.to_csv("learning.csv")
+    return df
+
 def get_cites(filename):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
@@ -25,13 +33,7 @@ def get_cites(filename):
     return mentionsList
 
 
-def filter_by_topic(df, keywords, stopwords):
-    if keywords:
-        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
-        if stopwords:
-            df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
-        df.to_csv("learning.csv")
-    return df
+
 
 
 def get_retweets(filename, keywords=None, stopwords=None):
