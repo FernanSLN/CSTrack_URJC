@@ -21,11 +21,9 @@ def filter_by_topic(df, keywords, stopwords):
         df.to_csv("learning.csv")
     return df
 
-
-def get_cites(filename, keywords=None, stopwords=None):
+def get_cites(filename):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
-    df = filter_by_topic(df, keywords, stopwords)
     dfMentions = df[['Usuario', 'Texto']].copy()
     dfMentions = dfMentions.dropna()
     dfEliminarRTs = dfMentions[dfMentions['Texto'].str.match('RT @')]
@@ -35,8 +33,12 @@ def get_cites(filename, keywords=None, stopwords=None):
     return mentionsList
 
 
+
+
+
 def get_retweets(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    #stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     # CALCULAR GRAFO RTs
     df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
@@ -61,9 +63,9 @@ def get_edges(values):
 
 # Código para hacer gráfica de Hashtags en retuits
 
-def get_hashtagsRT(filename, keywords=None, stopwords=None):
+def get_hashtagsRT(filename):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
-    df = filter_by_topic(df, keywords, stopwords)
+    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     dfHashtagsRT = df[['Usuario', 'Texto']].copy()
     dfHashtagsRT = dfHashtagsRT.drop([78202], axis=0)
     dfHashtagsRT = dfHashtagsRT.dropna()
@@ -82,9 +84,9 @@ def get_edgesHashRT(values):
 
 
 def prepare_hashtags(list):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list = [x.lower() for x in list]
-    list = [word for word in list if word not in stop_words]
+    list = [word for word in list if word not in stopwords]
     list = np.unique(list, return_counts=True)
     list = sorted((zip(list[1], list[0])), reverse=True)
     sortedNumberHashtags, sortedHashtagsRT = zip(*list)
@@ -93,11 +95,10 @@ def prepare_hashtags(list):
 
 # Código para calcular el grafo de Hashtags dentro de los retuits
 
-def get_hashtagsRT2(filename, keywords=None, stopwords=None):
+def get_hashtagsRT2(filename):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
-    df = filter_by_topic(df, keywords, stopwords)
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     dfHashtagsRT = df[['Usuario', 'Texto']]
     idx = dfHashtagsRT['Texto'].str.match('RT @', na=False)
     dfHashtagsRT = dfHashtagsRT[idx]
@@ -123,10 +124,9 @@ def combined_edges(x,y):
 
 # Código para calcular grafo de hashtags main
 
-def get_hashtagsmain(filename, keywords=None, stopwords=None):
+def get_hashtagsmain(filename):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
-    df = filter_by_topic(df, keywords, stopwords)
     dfMainHashtags = df[['Usuario', 'Texto']].copy()
     dfMainHashtags = dfMainHashtags.dropna()
     idx = dfMainHashtags[dfMainHashtags['Texto'].str.match('RT @')]
@@ -136,14 +136,14 @@ def get_hashtagsmain(filename, keywords=None, stopwords=None):
     return listMainHashtags
 
 def mainHashtags(values):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     mainHashtags = []
     aristasHashtags = []
     for row in values:
         match = re.findall('#(\w+)', row.lower())
         length = len(match)
     try:
-        match = [word for word in match if word not in stop_words]
+        match = [word for word in match if word not in stopwords]
     except ValueError:
         pass
     for index,hashtag in enumerate(match):
