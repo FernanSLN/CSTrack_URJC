@@ -5,7 +5,7 @@ from webweb import Web
 import utils
 import keywords_icalt
 
-retweetList = utils.get_retweets("sample.csv", keywords_icalt.k, keywords_icalt.k_stop)
+retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 print("LENGTH: ", len(retweetList))
 retweetEdges = utils.get_edges(retweetList)
 

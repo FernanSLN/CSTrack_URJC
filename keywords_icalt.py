@@ -1,7 +1,7 @@
 k = ["OpenLearning", "openlearning", "educacion", "educación",
      "#openlearning", "open learning", "learning", "cscl", " tel ", " #tel ",
      "#learning", "#education", "education", "online courses", "#onlinecourses",
-     "schools", "teacher", " ple ", "#ple"]
+     "schools", "teacher", " ple ", "#ple", "pedagogy", "educational", "#education", "online courses", "technology enhanced learning"]
 
 k_stop = ["machinelearning"]
 
