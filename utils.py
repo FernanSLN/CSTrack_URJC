@@ -25,15 +25,20 @@ def get_cites(filename):
     return mentionsList
 
 
-def get_retweets(filename, keywords=None, stopwords=None):
-    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
-    #stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    # CALCULAR GRAFO RTs
+def filter_by_topic(df, keywords, stopwords):
     if keywords:
         df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
         if stopwords:
             df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
         df.to_csv("learning.csv")
+    return df
+
+
+def get_retweets(filename, keywords=None, stopwords=None):
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    #stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    # CALCULAR GRAFO RTs
+    df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]  # Se seleccionan sólo las filas con RT
