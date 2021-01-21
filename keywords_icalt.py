@@ -1,3 +1,10 @@
+k = ["OpenLearning", "openlearning", "educacion", "educación",
+     "#openlearning", "open learning", "learning", "cscl", " tel ", " #tel ",
+     "#learning", "#education", "education", "online courses", "#onlinecourses",
+     "schools", "teacher", " ple ", "#ple"]
+
+k_stop = ["machinelearning"]
+
 keywords = ["education","educational resources","open educational resources","open learning","online courses","open online courses","open learning methodologies","open learning platforms","open learning practices","open linked data",
             "open access","MOOCs","big data","open education","open flipped classrooms","training","cultural issues","open accreditation","open badges","open virtual mobilities","learning",""]
 

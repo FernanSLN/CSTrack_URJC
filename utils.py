@@ -1,7 +1,6 @@
 import pandas as pd
 import re
 import numpy as np
-import graph_tool as gt
 
 
 def get_subgraphs(graph):
@@ -26,10 +25,14 @@ def get_cites(filename):
     return mentionsList
 
 
-def get_retweets(filename):
+def get_retweets(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
-    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    #stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     # CALCULAR GRAFO RTs
+    if keywords:
+        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
+        df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
+        df.to_csv("learning.csv")
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]  # Se seleccionan sólo las filas con RT
@@ -152,9 +155,6 @@ def prepare_hashtags2(list):
     hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
     return hashtagsFinales
     
-import networkx as nx
-import graph_tool as gt
-
 
 def get_prop_type(value, key=None):
     """
@@ -269,6 +269,3 @@ def nx2gt(nxG):
 
     # Done, finally!
     return gtG
-
-
-print ("Hola Zeki")
