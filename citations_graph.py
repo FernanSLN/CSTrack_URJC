@@ -5,8 +5,9 @@ import hashlib
 import networkx as nx
 import matplotlib.pyplot as plt
 import utils
+import keywords_icalt
 
-mentionsList = utils.get_cites("sample.csv")
+mentionsList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 mentionEdges = utils.get_edges(mentionsList)
 
 G = nx.Graph()

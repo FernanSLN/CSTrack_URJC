@@ -1,7 +1,8 @@
 k = ["OpenLearning", "openlearning", "educacion", "educación",
      "#openlearning", "open learning", "learning", "cscl", " tel ", " #tel ",
      "#learning", "#education", "education", "online courses", "#onlinecourses",
-     "schools", "teacher", " ple ", "#ple", "pedagogy", "educational", "#education", "online courses", "technology enhanced learning"]
+     "schools", "teacher", " ple ", "#ple", "pedagogy", "#pedagogy", "educational", "#education", " learner ", " teaching ",
+     "inclusive education", "classrooms", "student", "#students", " student ", " chatbot ", " teach ", " learn " ]
 
 k_stop = ["machinelearning"]
 
@@ -60,12 +61,12 @@ keywords10 = ["TeDISABLE","Technology-supported education for people with disabi
              "augmented learning enviroments for people with disabilities","robotics for people with disabilities","people with disabilities","ICT use for people with disabilities"]
 
 keywords11 = ["Artificial Intelligence and Smart Learning Environments","AISLE","instructional design","learning paradigms","teaching paradigms","environmental factors","assessment paradigms","social factors","policy",
-             "innovative uses of mature technologies","interactions","adoption","usabilit","standards","emerging technological paradigms","open educational resources","learning analytics","cloud computing","smart classrooms",
+             "innovative uses of mature technologies","interactions","adoption","usability","standards","emerging technological paradigms","open educational resources","learning analytics","cloud computing","smart classrooms",
              "transformation of curriculum","transformation of teaching behaviour","transformation of learning","transformation of administration","transformation of schooling","best practices of infusion","piloting of new ideas",
              "Fusion of pedagogy/didactics and technology","Fusion of didactics and technology","Fusion of pedagogy and technology",
               "AI governance and policy for smart learning","AI governance","AI risk management","AI accountability","AI self-surveillance","biases in AI Algorithms","use and misuse of AI","AI on societal impact",
              "AI technology & practice for smart learning","Explainable AI","interpretable ML","flexibility and contextual understanding by humans","explanation and comprehensible by humans",
-              "intelligent agent assitants","automated conversational robot","Chabot","AI-enabled personalization"]
+              "intelligent agent assitants","automated conversational robot","Chatbot","AI-enabled personalization"]
 
 keywords12 = ["Augmented Reality and Virtual Worlds in Education and Training","ARVWET","VR pedagogy","VR learning design","AR pedagogy","AR learning design","MR pedagogy","MR learning design","XR pedagogy","XR learning design","VR",
              "AR","XR","MR","learning design","pedagogy","AR for education","MR for education","XR for education","Virtual worlds","education in virtual worlds","collaborative learning","virtual world for collaborative training",

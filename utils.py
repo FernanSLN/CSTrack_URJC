@@ -21,6 +21,8 @@ def filter_by_topic(df, keywords, stopwords):
         df.to_csv("learning.csv")
     return df
 
+# Calcular grafo de citas
+
 def get_cites(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
@@ -35,12 +37,10 @@ def get_cites(filename, keywords=None, stopwords=None):
 
 
 
-
+# Calcular grafos de RT
 
 def get_retweets(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
-    #stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    # CALCULAR GRAFO RTs
     df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
@@ -49,6 +49,7 @@ def get_retweets(filename, keywords=None, stopwords=None):
     retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
     return retweetEdges
 
+# Función para extraer edges de rts y citas
 
 def get_edges(values):
     edges = []
@@ -67,7 +68,6 @@ def get_edges(values):
 def get_hashtagsRT(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = filter_by_topic(df, keywords, stopwords)
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     dfHashtagsRT = df[['Usuario', 'Texto']].copy()
     dfHashtagsRT = dfHashtagsRT.drop([78202], axis=0)
     dfHashtagsRT = dfHashtagsRT.dropna()
@@ -97,10 +97,10 @@ def prepare_hashtags(list):
 
 # Código para calcular el grafo de Hashtags dentro de los retuits
 
-def get_hashtagsRT2(filename):
+def get_hashtagsRT2(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
-    stopwords = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    df = filter_by_topic(df, keywords, stopwords)
     dfHashtagsRT = df[['Usuario', 'Texto']]
     idx = dfHashtagsRT['Texto'].str.match('RT @', na=False)
     dfHashtagsRT = dfHashtagsRT[idx]
@@ -118,7 +118,7 @@ def get_edgesHashRT2(values):
             edges.append(row)
     return edges
 
-# Combinación de ls ejes de RTs y Citas:
+# Combinación de los ejes de RTs y Citas:
 
 def combined_edges(x,y):
     combined_edges = x + y
