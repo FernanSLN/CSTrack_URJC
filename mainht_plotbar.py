@@ -7,4 +7,4 @@ hashmain2, arsitasmain= utils.mainHashtags2(hashmain)
 sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(hashmain2)
 
 utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 hashtags más utilizados',
-          'Hashtag', 'Nº de veces', 'graficoHashtagsUsados')
+          'Hashtag', 'Nº de veces', '/home/fernando/Documentos', 'graficoHashtagsUsados')

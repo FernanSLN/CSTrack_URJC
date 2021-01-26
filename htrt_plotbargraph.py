@@ -7,4 +7,4 @@ edges = utils.get_edgesHashRT(listHashtagsRT2)
 sortedHashtagsRT,sortedNumberHashtags = utils.prepare_hashtags(edges)
 
 utils.plotbarchart(10, sortedNumberHashtags, sortedHashtagsRT, 'Top 10 hashtag con más retweets',
-             'Hashtag', 'Nº de veces', 'graficoHashtagsRT')
+             'Hashtag', 'Nº de veces', '/home/fernando/Documentos', 'graficoHashtagsRT')
