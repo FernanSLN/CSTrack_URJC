@@ -1,7 +1,23 @@
 import pandas as pd
 import re
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
+# Función para grafica de barras:
+
+def plotbarchart(numberbars, x, y, title, xlabel, ylabel, directory, filename):
+    sns.set()
+    plt.figure(figsize=(9, 6))
+    plt.bar(x=x[:numberbars], height=y[:numberbars], color='midnightblue')
+    plt.xlabel(xlabel, fontsize=15)
+    plt.ylabel(ylabel, fontsize=15)
+    plt.xticks(rotation=45)
+    plt.title(title, fontsize=20, fontweight='bold')
+    plt.tight_layout()
+    plt.savefig(directory + filename + '.png')
+
+# Función para obtener los subgrafos con NetworkX:
 
 def get_subgraphs(graph):
     import networkx as nx
@@ -12,6 +28,7 @@ def get_subgraphs(graph):
 
     return list_subgraphs
 
+# Función para filtrar usando el topic quer nos interese:
 
 def filter_by_topic(df, keywords, stopwords):
     if keywords:
@@ -21,7 +38,7 @@ def filter_by_topic(df, keywords, stopwords):
         df.to_csv("learning.csv")
     return df
 
-# Calcular grafo de citas
+# Calcular grafo de citas:
 
 def get_cites(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
@@ -37,7 +54,7 @@ def get_cites(filename, keywords=None, stopwords=None):
 
 
 
-# Calcular grafos de RT
+# Calcular grafos de RT:
 
 def get_retweets(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
@@ -49,7 +66,7 @@ def get_retweets(filename, keywords=None, stopwords=None):
     retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
     return retweetEdges
 
-# Función para extraer edges de rts y citas
+# Función para extraer edges de rts y citas:
 
 def get_edges(values):
     edges = []
@@ -63,15 +80,15 @@ def get_edges(values):
     return edges
 
 
-# Código para hacer gráfica de Hashtags en retuits
+# Código para hacer gráfica de Hashtags en retuits:
 
 def get_hashtagsRT(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = df.drop([78202], axis=0)
     df = filter_by_topic(df, keywords, stopwords)
     dfHashtagsRT = df[['Usuario', 'Texto']].copy()
-    dfHashtagsRT = dfHashtagsRT.drop([78202], axis=0)
     dfHashtagsRT = dfHashtagsRT.dropna()
-    dfHashtagsRT = dfHashtagsRT[dfHashtagsRT['Texto'].str.match('RT:')]
+    dfHashtagsRT = dfHashtagsRT[dfHashtagsRT['Texto'].str.match('RT @')]
     listHashtagsRT = dfHashtagsRT['Texto'].to_numpy()
     return listHashtagsRT
 
@@ -166,6 +183,33 @@ def prepare_hashtags2(list):
     hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
     return hashtagsFinales
     
+# Creación de gráfica hashtags más usados fuera de RTs:
+
+def mainHashtags2(values):
+    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    mainHashtags = []
+    aristasHashtags = []
+    for row in values:
+        match = re.findall('#(\w+)', row.lower())
+        length = len(match)
+    try:
+        match = [word for word in match if word not in stop_words]
+    except ValueError:
+        pass
+    for index,hashtag in enumerate(match):
+        mainHashtags.append(hashtag)
+        if index | (length-2):
+            nextHashtags = match[index+1:length-1]
+            for nextHashtags in nextHashtags:
+                aristasHashtags.append([hashtag,nextHashtags])
+    return mainHashtags,aristasHashtags
+
+def prepare_hashtagsmain(list):
+    mainHashtags = np.unique(list,return_counts=True)
+    mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
+    sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
+    return sortedNumberHashtags,sortedMainHashtags
+
 
 def get_prop_type(value, key=None):
     """

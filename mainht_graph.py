@@ -12,15 +12,15 @@ hashtags_edges = utils.prepare_hashtags2(hashmain2)
 
 G = nx.Graph()
 G.add_edges_from(hashtags_edges)
-subgraphs = utils.get_subgraphs(G)
-subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
+#subgraphs = utils.get_subgraphs(G)
+#subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
 
-# web = Web(title="Main Hashtags",nx_G=G)
-web = Web(title="Main Hashtags", nx_G=subgraphs[0])
+web = Web(title="Main Hashtags",nx_G=G)
+#web = Web(title="Main Hashtags", nx_G=subgraphs[0])
 web.display.gravity = 1
 
-for i in range(2, len(subgraphs)):
-    web.networks.hashtags.add_layer(nx_G=subgraphs[i])
+#for i in range(2, len(subgraphs)):
+   # web.networks.hashtags.add_layer(nx_G=subgraphs[i])
 
 # show the visualization
 web.show()
