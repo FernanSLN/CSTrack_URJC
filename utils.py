@@ -3,6 +3,7 @@ import re
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import networkx as nx
 
 # Función para grafica de barras:
 
