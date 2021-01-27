@@ -324,3 +324,37 @@ def nx2gt(nxG):
 
     # Done, finally!
     return gtG
+
+# Función para extraer los valores de degree,outdegree, eigenvector y betweenness y crear un csv:
+
+def csv_degval(Digraph, filename):
+    list_values = []
+    outdegrees2 = dict(Digraph.out_degree())
+    indegrees = dict(Digraph.in_degree())
+    centrality = dict(nx.eigenvector_centrality(Digraph))
+    betweenness = dict(nx.betweenness_centrality(Digraph))
+    indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x:x[1], reverse=True)
+    indegtupl = indegtupl[0:10]
+    names = [i[0] for i in indegtupl]
+    outdegtupl = sorted([(k,v) for k,v in outdegrees2.items()], key=lambda x:x[1], reverse=True)
+    centraltupl = sorted([(k,v) for k,v in centrality.items()], key=lambda x:x[1], reverse=True)
+    betwentupl = sorted([(k,v) for k,v in betweenness.items()], key=lambda x:x[1], reverse=True)
+    for name in names:
+        pos_indeg = [y[0] for y in indegtupl].index(name)
+        rank_indeg = pos_indeg + 1
+        indeg_val = indegtupl[pos_indeg][1]
+        pos_outdeg = [y[0] for y in outdegtupl].index(name)
+        rank_outdeg = pos_outdeg + 1
+        outdeg_val = outdegtupl[pos_outdeg][1]
+        pos_central = [y[0] for y in centraltupl].index(name)
+        rank_central = pos_central + 1
+        central_val = centraltupl[pos_central][1]
+        pos_between = [y[0] for y in betwentupl].index(name)
+        rank_between = pos_between + 1
+        between_val = betwentupl[pos_between][1]
+        list_values.append((name, indeg_val, rank_indeg, outdeg_val, rank_outdeg, central_val, rank_central,
+                        between_val, rank_between))
+    df = pd.DataFrame(list_values,
+                      columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
+                               'Rank'])
+    return df.to_csv(filename, index=False)
