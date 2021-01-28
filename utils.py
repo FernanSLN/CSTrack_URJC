@@ -29,7 +29,16 @@ def get_subgraphs(graph):
 
     return list_subgraphs
 
-# Función para filtrar usando el topic quer nos interese:
+# Función para convertir a direct graph los subgrafos:
+
+def direct_subgraphs(subgraphs):
+    list_directsubgraphs = []
+    for i in range(len(subgraphs)):
+        list_directsubgraphs.append(subgraphs[i].to_directed())
+
+    return list_directsubgraphs
+
+# Función para filtrar usando el topic que nos interese:
 
 def filter_by_topic(df, keywords, stopwords):
     if keywords:
