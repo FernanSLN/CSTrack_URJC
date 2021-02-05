@@ -368,3 +368,20 @@ def csv_degval(Digraph, filename):
                       columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
                                'Rank'])
     return df.to_csv(filename, index=False)
+
+# Función para obtener los elementos de la two mode:
+
+def get_uv_edgesRT(filename, keywords=None, stopwords=None):
+    edges = []
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = filter_by_topic(df, keywords, stopwords)
+    dfRT = df[['Usuario', 'Texto']].copy()
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    subset = dfRT[['Usuario', 'Texto']]
+    u = list(subset['Usuario'])
+    v = list(subset['Texto'])
+    edges = [tuple(x) for x in subset.to_numpy()]
+    return edges, u, v
+
+
