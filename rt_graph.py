@@ -19,12 +19,12 @@ print("BIGGEST: ", len(subgraphs[0].nodes))
 web = Web(title="retweets", nx_G=subgraphs[0])
 web.display.gravity = 1
 
-name ="graph"
+name = "graph"
 for i in range(2, len(subgraphs)):
     web.networks.retweets.add_layer(nx_G=subgraphs[i])
 
 # show the visualization
 web.show()
 
-#grafoRT = graph_utils.creategraph(retweetEdges)
-#graph_utils.plotgraph(grafoRT, 'grafoRT', False)
+# grafoRT = graph_utils.creategraph(retweetEdges)
+# graph_utils.plotgraph(grafoRT, 'grafoRT', False)

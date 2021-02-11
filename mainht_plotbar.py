@@ -1,10 +1,11 @@
 import utils
 import keywords_icalt
 
-hashmain = utils.get_hashtagsmain("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
-hashmain2, arsitasmain= utils.mainHashtags2(hashmain)
+hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 
-sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(hashmain2)
+edges = utils.get_edgesMain(hashmain)
+
+sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges)
 
 utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 hashtags más utilizados',
-          'Hashtag', 'Nº de veces', '/home/fernando/Documentos', 'graficoHashtagsUsados')
+          'Hashtag', 'Nº de veces', '/home/fernan/Pictures', 'graficoHashtagsUsados')

@@ -195,26 +195,19 @@ def prepare_hashtags2(list):
     
 # Creación de gráfica hashtags más usados fuera de RTs:
 
-def mainHashtags2(values):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    mainHashtags = []
-    aristasHashtags = []
+def get_edgesMain(values):
+    edges = []
     for row in values:
         match = re.findall('#(\w+)', row.lower())
-        length = len(match)
-    try:
-        match = [word for word in match if word not in stop_words]
-    except ValueError:
-        pass
-    for index,hashtag in enumerate(match):
-        mainHashtags.append(hashtag)
-        if index | (length-2):
-            nextHashtags = match[index+1:length-1]
-            for nextHashtags in nextHashtags:
-                aristasHashtags.append([hashtag,nextHashtags])
-    return mainHashtags,aristasHashtags
+        for hashtag in match:
+            edges.append(hashtag)
+    return edges
+
 
 def prepare_hashtagsmain(list):
+    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+    list = [x.lower() for x in list]
+    list = [word for word in list if word not in stop_words]
     mainHashtags = np.unique(list,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
