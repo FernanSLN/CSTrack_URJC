@@ -8,4 +8,5 @@ edges = utils.get_edgesMain(hashmain)
 sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges)
 
 utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 hashtags más utilizados',
-          'Hashtag', 'Nº de veces', '/home/fernan/Pictures', 'graficoHashtagsUsados')
+                   'Hashtag', 'Nº de veces', '/home/fernan/Documents/Proyectos/CSTrack-URJC',
+                   'graficoHashtagsUsados')

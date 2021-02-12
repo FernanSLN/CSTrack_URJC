@@ -6,8 +6,8 @@ import networkx as nx
 import utils
 import keywords_icalt
 
-hashmain = utils.get_hashtagsmain("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
-hashmain2= utils.mainHashtags(hashmain)
+hashmain = utils.get_hashtagsmain2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+hashmain2= utils.get_edgesmain2(hashmain)
 hashtags_edges = utils.prepare_hashtags2(hashmain2)
 
 G = nx.Graph()

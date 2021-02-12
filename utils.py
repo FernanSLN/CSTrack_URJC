@@ -151,7 +151,7 @@ def combined_edges(x,y):
     combined_edges = x + y
     return combined_edges
 
-# Código para calcular grafo de hashtags main
+# Código para calcular grafo de hashtags relacionados fuera de RTs
 
 def get_hashtagsmain(filename, keywords=None, stopwords=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
@@ -192,7 +192,33 @@ def prepare_hashtags2(list):
     hashtagsFinales = [hashtag for hashtag in list if hashtag[0] not in hashtagsOnce]
     hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
     return hashtagsFinales
-    
+
+# Creación de grafo hashtags más utilizados (relacionado con usuario):
+
+def get_hashtagsmain2(filename, keywords=None, stopwords=None):
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = df.drop([78202], axis=0)
+    df = filter_by_topic(df, keywords, stopwords)
+    dfMainHashtags = df[['Usuario', 'Texto']].copy()
+    dfMainHashtags = dfMainHashtags.dropna()
+    idx = dfMainHashtags[dfMainHashtags['Texto'].str.match('RT @')]
+    dfMainHashtags = dfMainHashtags.drop(idx.index)
+    subset = dfMainHashtags[['Usuario','Texto']]
+    listMainHashtags = [list(x) for x in subset.to_numpy()]
+    return listMainHashtags
+
+def get_edgesmain2(values):
+    stop_words = [['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']]
+    edges = []
+    for row in values:
+        match = re.search('#(\w+)', row[1])
+        if match:
+            matchhash = match.group(1)
+            row[1] = matchhash
+            edges.append(row)
+            edges = [i for i in edges if i[1] != stop_words]
+    return edges
+
 # Creación de gráfica hashtags más usados fuera de RTs:
 
 def get_edgesMain(values):

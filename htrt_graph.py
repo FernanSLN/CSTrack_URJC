@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import  utils
 import keywords_icalt
 
-listHashtagsRT2 = utils.get_hashtagsRT2("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+listHashtagsRT2 = utils.get_hashtagsRT2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 edges2 = utils.get_edgesHashRT2(listHashtagsRT2)
 
 G = nx.Graph()
