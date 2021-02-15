@@ -13,14 +13,14 @@ stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', '
 
 def plotbarchart(numberbars, x, y, title, xlabel, ylabel, directory, filename):
     sns.set()
-    plt.figure(figsize=(9, 6))
-    plt.bar(x=x[:numberbars], height=y[:numberbars], color='midnightblue')
+    plt.figure(figsize=(10, 8))
+    plt.bar(x=x[:numberbars], height=y[:numberbars], color=['aquamarine', 'lightseagreen', 'azure', 'powderblue',
+                                                            'midnightblue'])
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.xticks(rotation=45)
     plt.title(title, fontsize=20, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(directory + filename + '.png')
 
 # Función para obtener los subgrafos con NetworkX:
 
