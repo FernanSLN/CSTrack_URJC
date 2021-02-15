@@ -11,11 +11,10 @@ stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', '
 
 # Función para grafica de barras:
 
-def plotbarchart(numberbars, x, y, title, xlabel, ylabel, directory, filename):
+def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     sns.set()
     plt.figure(figsize=(10, 8))
-    plt.bar(x=x[:numberbars], height=y[:numberbars], color=['aquamarine', 'lightseagreen', 'azure', 'powderblue',
-                                                            'midnightblue'])
+    plt.bar(x=x[:numberbars], height=y[:numberbars], color='lightsteelblue')
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.xticks(rotation=45)
