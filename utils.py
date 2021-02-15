@@ -52,11 +52,19 @@ def filter_by_topic(df, keywords, stopwords):
         df.to_csv("learning.csv")
     return df
 
+# Función para filtrar por interés:
+
+def filter_by_interest(df, interest):
+    if interest:
+        df = df[df['Marca']==interest]
+    return df
+
 # Calcular grafo de citas:
 
-def get_cites(filename, keywords=None, stopwords=None):
+def get_cites(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfMentions = df[['Usuario', 'Texto']].copy()
     dfMentions = dfMentions.dropna()
@@ -70,8 +78,9 @@ def get_cites(filename, keywords=None, stopwords=None):
 
 # Calcular grafos de RT:
 
-def get_retweets(filename, keywords=None, stopwords=None):
+def get_retweets(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
@@ -96,9 +105,10 @@ def get_edges(values):
 
 # Código para hacer gráfica de Hashtags en retuits:
 
-def get_hashtagsRT(filename, keywords=None, stopwords=None):
+def get_hashtagsRT(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfHashtagsRT = df[['Usuario', 'Texto']].copy()
     dfHashtagsRT = dfHashtagsRT.dropna()
