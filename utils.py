@@ -20,6 +20,7 @@ def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     plt.xticks(rotation=45)
     plt.title(title, fontsize=20, fontweight='bold')
     plt.tight_layout()
+    plt.show()
 
 # Función para obtener los subgrafos con NetworkX:
 

@@ -8,4 +8,3 @@ sortedHashtagsRT,sortedNumberHashtags = utils.prepare_hashtags(edges)
 
 utils.plotbarchart(10, sortedNumberHashtags, sortedHashtagsRT, 'Top 10 hashtag con más retweets',
              'Hashtag', 'Nº de veces')
-plt.show()
