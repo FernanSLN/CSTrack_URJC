@@ -13,6 +13,11 @@ edges2 = utils.get_edgesHashRT2(listHashtagsRT2)
 
 G = nx.Graph()
 G.add_edges_from(edges2)
+
+# Empleando G.remove_nodes_from() podemos eliminar las stop_words para filtrar el grafo
+
+# G.remove_nodes_from(utils.stop_words)
+
 subgraphs = utils.get_subgraphs(G)
 subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
 web = Web(title="HashtagsRT", nx_G=subgraphs[0])

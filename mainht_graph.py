@@ -12,6 +12,11 @@ hashtags_edges = utils.prepare_hashtags2(hashmain2)
 
 G = nx.Graph()
 G.add_edges_from(hashtags_edges)
+
+# Empleando G.remove_nodes_from() podemos eliminar las stop_words para filtrar el grafo
+
+# G.remove_nodes_from(utils.stop_words)
+
 #subgraphs = utils.get_subgraphs(G)
 #subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
 

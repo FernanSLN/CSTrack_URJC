@@ -5,6 +5,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
 
+# stop_words para emplear en filtrados:
+
+stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+
 # Función para grafica de barras:
 
 def plotbarchart(numberbars, x, y, title, xlabel, ylabel, directory, filename):
