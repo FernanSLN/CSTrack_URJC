@@ -138,9 +138,10 @@ def prepare_hashtags(list):
 
 # Código para calcular el grafo de Hashtags dentro de los retuits
 
-def get_hashtagsRT2(filename, keywords=None, stopwords=None):
+def get_hashtagsRT2(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfHashtagsRT = df[['Usuario', 'Texto']]
     idx = dfHashtagsRT['Texto'].str.match('RT @', na=False)
@@ -167,9 +168,10 @@ def combined_edges(x,y):
 
 # Código para calcular grafo de hashtags relacionados fuera de RTs
 
-def get_hashtagsmain(filename, keywords=None, stopwords=None):
+def get_hashtagsmain(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfMainHashtags = df[['Usuario', 'Texto']].copy()
     dfMainHashtags = dfMainHashtags.dropna()
@@ -209,9 +211,10 @@ def prepare_hashtags2(list):
 
 # Creación de grafo hashtags más utilizados (relacionado con usuario):
 
-def get_hashtagsmain2(filename, keywords=None, stopwords=None):
+def get_hashtagsmain2(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = df.drop([78202], axis=0)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfMainHashtags = df[['Usuario', 'Texto']].copy()
     dfMainHashtags = dfMainHashtags.dropna()
