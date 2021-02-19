@@ -444,7 +444,7 @@ def wordcloudmain(filename, keywords=None, stopwords=None, interest=None ):
             hashtags.append(hashtag)
     unique_string = (' ').join(hashtags)
     wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stop_words,
-                          min_font_size=10, max_words=10405, collocations=False).generate(unique_string)
+                          min_font_size=10, max_words=10405, collocations=False, colormap='winter').generate(unique_string)
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wordcloud)
     plt.axis("off")
@@ -483,11 +483,11 @@ def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None,
     for i in range(len(logo)):
         transformed_logo[i] = list(map(transform_format, logo[i]))
 
-    wc = WordCloud(width=900, height=900,
-                   background_color='white',
-                   stopwords=stop_words,
-                   min_font_size=3, max_font_size=7, max_words=10405, collocations=False, mask=transformed_logo,
-                   contour_width=2, contour_color='blue').generate(unique_string)
+    wc = WordCloud(width = 900, height = 900,
+                background_color ='ghostwhite',
+                stopwords = stopwords,
+                min_font_size = 5, max_font_size=30, max_words=10405, collocations=False,mask=transformed_logo,
+          contour_width=2, contour_color='cornflowerblue',mode='RGB', colormap='summer').generate(unique_string)
 
     plt.figure(figsize=[25, 10])
     plt.imshow(wc)
