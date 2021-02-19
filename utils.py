@@ -4,6 +4,9 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from os import path
+from PIL import Image
 
 # stop_words para emplear en filtrados:
 
@@ -421,3 +424,72 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None):
     return edges, u, v
 
 
+# Wordcloud function for main hashtags:
+
+def wordcloudmain(filename, keywords=None, stopwords=None, interest=None ):
+    hashtags =[]
+    comment_words = ''
+    stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = df[['Usuario', 'Texto']]
+    df = df.dropna()
+    idx = df[df['Texto'].str.match('RT @')]
+    df = df.drop(idx.index)
+    subset = df['Texto']
+    for row in subset:
+        match = re.findall('#(\w+)', row.lower())
+        for hashtag in match:
+            hashtags.append(hashtag)
+    unique_string = (' ').join(hashtags)
+    wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stop_words,
+                          min_font_size=10, max_words=10405, collocations=False).generate(unique_string)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
+
+# Wordcloud for main hashtags plotted inside CS-Track logo:
+
+def transform_format(val):
+    if val == 0:
+        return 255
+    else:
+        return val
+
+
+def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None, image =None):
+    hashtags =[]
+    comment_words = ''
+    stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = df[['Usuario', 'Texto']]
+    df = df.dropna()
+    idx = df[df['Texto'].str.match('RT @')]
+    df = df.drop(idx.index)
+    subset = df['Texto']
+    for row in subset:
+        match = re.findall('#(\w+)', row.lower())
+        for hashtag in match:
+            hashtags.append(hashtag)
+    unique_string = (' ').join(hashtags)
+    logo = np.array(Image.open(image))
+    transformed_logo = np.ndarray((logo.shape[0], logo.shape[1]), np.int32)
+
+    for i in range(len(logo)):
+        transformed_logo[i] = list(map(transform_format, logo[i]))
+
+    wc = WordCloud(width=900, height=900,
+                   background_color='white',
+                   stopwords=stop_words,
+                   min_font_size=3, max_font_size=7, max_words=10405, collocations=False, mask=transformed_logo,
+                   contour_width=2, contour_color='blue').generate(unique_string)
+
+    plt.figure(figsize=[25, 10])
+    plt.imshow(wc)
+    plt.axis("off")
+    plt.show()
