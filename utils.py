@@ -535,9 +535,7 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, interest=None, ima
             hashtags.append(hashtag)
     unique_string = (' ').join(hashtags)
 
-    logo = Image.open(image)
-    logo = np.array(logo)
-
+    logo = np.array(Image.open(image))
     transformed_logo = np.ndarray((logo.shape[0], logo.shape[1]), np.int32)
 
     for i in range(len(logo)):
