@@ -5,7 +5,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-from os import path
 from PIL import Image
 
 # stop_words para emplear en filtrados:
@@ -428,7 +427,6 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None):
 
 def wordcloudmain(filename, keywords=None, stopwords=None, interest=None ):
     hashtags =[]
-    comment_words = ''
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df = filter_by_interest(df, interest)
@@ -451,7 +449,7 @@ def wordcloudmain(filename, keywords=None, stopwords=None, interest=None ):
     plt.tight_layout(pad=0)
     plt.show()
 
-# Wordcloud for main hashtags plotted inside CS-Track logo:
+# Wordcloud for main hashtags plotted inside a logo:
 
 def transform_format(val):
     if val == 0:
@@ -462,7 +460,6 @@ def transform_format(val):
 
 def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None, image =None):
     hashtags =[]
-    comment_words = ''
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df = filter_by_interest(df, interest)
@@ -485,7 +482,7 @@ def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None,
 
     wc = WordCloud(width = 900, height = 900,
                 background_color ='ghostwhite',
-                stopwords = stopwords,
+                stopwords = stop_words,
                 min_font_size = 5, max_font_size=30, max_words=10405, collocations=False,mask=transformed_logo,
           contour_width=2, contour_color='cornflowerblue',mode='RGB', colormap='summer').generate(unique_string)
 
@@ -493,3 +490,69 @@ def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None,
     plt.imshow(wc)
     plt.axis("off")
     plt.show()
+
+
+# Wordlcoud for hashtags in the RTs:
+
+def wordcloudRT(filename, keywords=None, stopwords=None, interest=None ):
+    hashtags =[]
+    stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = df[['Usuario', 'Texto']]
+    df = df.dropna()
+    idx = df['Texto'].str.contains('RT @', na=False)
+    df = df[idx]
+    subset = df['Texto']
+    for row in subset:
+        match = re.findall('#(\w+)', row.lower())
+        for hashtag in match:
+            hashtags.append(hashtag)
+    unique_string = (' ').join(hashtags)
+    wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stop_words,
+                          min_font_size=10, max_words=10405, collocations=False, colormap='winter').generate(unique_string)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
+
+def wordcloudRT_logo(filename, keywords=None, stopwords=None, interest=None, image=None):
+    hashtags = []
+    stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = df[['Usuario', 'Texto']]
+    df = df.dropna()
+    idx = df['Texto'].str.contains('RT @', na=False)
+    df = df[idx]
+    subset = df['Texto']
+    for row in subset:
+        match = re.findall('#(\w+)', row.lower())
+        for hashtag in match:
+            hashtags.append(hashtag)
+    unique_string = (' ').join(hashtags)
+
+    logo = Image.open(image)
+    logo = np.array(logo)
+
+    transformed_logo = np.ndarray((logo.shape[0], logo.shape[1]), np.int32)
+
+    for i in range(len(logo)):
+        transformed_logo[i] = list(map(transform_format, logo[i]))
+
+    wc = WordCloud(width=900, height=900,
+                   background_color='ghostwhite',
+                   stopwords=stop_words,
+                   min_font_size=5, max_font_size=30, max_words=10405, collocations=False, mask=transformed_logo,
+                   contour_width=2, contour_color='cornflowerblue', mode='RGB', colormap='summer').generate(
+        unique_string)
+
+    plt.figure(figsize=[25, 10])
+    plt.imshow(wc)
+    plt.axis("off")
+    plt.show()
+
+
