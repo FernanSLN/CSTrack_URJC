@@ -458,7 +458,7 @@ def transform_format(val):
         return val
 
 
-def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None, image =None):
+def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None, image=None):
     hashtags =[]
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
