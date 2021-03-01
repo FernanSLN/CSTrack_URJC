@@ -5,7 +5,12 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from os import path
 from PIL import Image
+from collections import Counter
+import string
+import nltk
+from nltk.corpus import stopwords
 
 # stop_words para emplear en filtrados:
 
@@ -554,3 +559,56 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, interest=None, ima
     plt.show()
 
 
+# Cálculo de las palabras más usadas:
+# La función emplea la columna texto y podemos añadir un número n que indica cuantas palabras
+
+def most_common(filename,n):
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    subset = df['Texto']
+    subset = subset.dropna()
+    # Definimos stopwords en varios idiomas y símbolos que queremos eliminar del resultado
+    s = stopwords.words('english')
+    e = stopwords.words('spanish')
+    r = STOPWORDS
+    d = stopwords.words('german')
+    p = string.punctuation
+    new_elements = ('\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-', '???')
+    s.extend(new_elements)
+    s.extend(e)
+    s.extend(r)
+    s.extend(d)
+    s.extend(p)
+    s = set(s)
+    # Calculamos la frecuencia de las palabras
+    word_freq = Counter(" ".join(subset).lower().split())
+    for word in s:
+        del word_freq[word]
+    return word_freq.most_common(n)
+
+# Top palabras más usadas en wordcloud:
+
+def most_commonwc(filename):
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    subset = df['Texto']
+    subset = subset.dropna()
+    s = stopwords.words('english')
+    e = stopwords.words('spanish')
+    r = STOPWORDS
+    d = stopwords.words('german')
+    new_elements = ('\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-','the', 'to')
+    s.extend(new_elements)
+    s.extend(e)
+    s.extend(r)
+    s.extend(d)
+    stopset = set(s)
+    word_freq = Counter(" ".join(subset).lower().split())
+    for word in s:
+        del word_freq[word]
+    wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stop_words,
+                          min_font_size=10, max_words=10405, collocations=False,
+                          colormap='winter').generate_from_frequencies(word_freq)
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
