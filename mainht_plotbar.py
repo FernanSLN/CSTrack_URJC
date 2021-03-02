@@ -1,6 +1,5 @@
 import utils
 import keywords_icalt
-import matplotlib.pyplot as plt
 
 hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 
