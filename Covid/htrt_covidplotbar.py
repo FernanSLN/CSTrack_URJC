@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 import utils
 import RTcovid_graph
 

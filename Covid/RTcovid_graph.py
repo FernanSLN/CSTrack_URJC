@@ -1,7 +1,8 @@
-import pandas as pd
+import sys
+sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
+import utils
 import networkx as nx
 from webweb import Web
-import utils
 
 covid = ['covid', 'coronavirus', 'pandemic', 'COVID-19', 'SARS-COV-2', 'vaccine', 'vaccination']
 
