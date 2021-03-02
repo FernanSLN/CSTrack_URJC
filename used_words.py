@@ -1,6 +1,6 @@
 import utils
 
-most_common = utils.most_common('/home/fernan/Documents/Lynguo_def2.csv', 10)
+most_common = utils.most_common('/home/fernan/Documents/Lynguo_def2.csv', number=10)
 
 names = [item[0] for item in most_common]
 

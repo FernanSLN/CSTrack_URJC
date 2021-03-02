@@ -562,7 +562,7 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, interest=None, ima
 # Cálculo de las palabras más usadas:
 # La función emplea la columna texto y podemos añadir un número n que indica cuantas palabras
 
-def most_common(filename,n):
+def most_common(filename,number=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     subset = df['Texto']
     subset = subset.dropna()
@@ -583,7 +583,7 @@ def most_common(filename,n):
     word_freq = Counter(" ".join(subset).lower().split())
     for word in s:
         del word_freq[word]
-    return word_freq.most_common(n)
+    return word_freq.most_common(number)
 
 # Top palabras más usadas en wordcloud:
 
@@ -604,7 +604,7 @@ def most_commonwc(filename):
     word_freq = Counter(" ".join(subset).lower().split())
     for word in s:
         del word_freq[word]
-    wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stop_words,
+    wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stopset,
                           min_font_size=10, max_words=10405, collocations=False,
                           colormap='winter').generate_from_frequencies(word_freq)
     plt.figure(figsize=(8, 8), facecolor=None)
