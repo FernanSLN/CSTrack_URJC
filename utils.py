@@ -595,11 +595,13 @@ def most_commonwc(filename):
     e = stopwords.words('spanish')
     r = STOPWORDS
     d = stopwords.words('german')
+    p = string.punctuation
     new_elements = ('\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-','the', 'to')
     s.extend(new_elements)
     s.extend(e)
     s.extend(r)
     s.extend(d)
+    s.extend(p)
     stopset = set(s)
     word_freq = Counter(" ".join(subset).lower().split())
     for word in s:
