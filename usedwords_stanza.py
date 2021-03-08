@@ -27,7 +27,7 @@ def extractwords(doc):
 
     return wordslist
 
-df = pd.read_csv('Lynguo_def2.csv', sep=';', encoding='latin-1', error_bad_lines=False)
+df = pd.read_csv('/home/fernan/Documents/Lynguo_def2.csv', sep=';', encoding='latin-1', error_bad_lines=False)
 subset = df['Texto']
 subset = subset.astype(str)
 texto = '\n\n'.join(subset.to_list())
