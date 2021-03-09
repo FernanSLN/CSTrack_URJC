@@ -11,6 +11,8 @@ from collections import Counter
 import string
 import nltk
 from nltk.corpus import stopwords
+import matplotlib.dates as mdates
+import time
 
 # stop_words para emplear en filtrados:
 
@@ -614,3 +616,74 @@ def most_commonwc(filename):
     plt.axis("off")
     plt.tight_layout(pad=0)
     plt.show()
+
+# Gráficos temporales
+# Función para seleccionar Usuario,Texto y Fecha en el df y eliminar RTs:
+
+def Maindf(filename, keywords=None, stopwords=None, interest=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    dfMain= df[['Usuario', 'Texto', 'Fecha']].copy()
+    dfMain = dfMain.dropna()
+    dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
+    dfMain = dfMain.drop(dfEliminarRTs.index)
+    dfMain = dfMain[dfMain['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
+    return dfMain
+
+# Función para seleccionar Usuario, Texto y Fecha en los RTs:
+
+def dfRT(filename, keywords=None, stopwords=None, interest=None):
+    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
+    dfRT = df.dropna()
+    dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    return dfRT
+
+#Función para extraer los días:
+def getDays(df):
+    df = df['Fecha']
+    df = pd.to_datetime(df, format="%d/%m/%Y %H:%M").dt.date
+    days = pd.unique(df)
+    days.sort()
+    return days
+
+# Función para graficar uso de hashtags en el tiempo:
+
+def plottemporalserie(days, df, elements, title):
+    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%d/%m/%Y %H:%M").dt.date
+    numHashtag = []
+    for hashtag in elements[:5]:
+        numPerDay = []
+        for day in days:
+            dfOneDay = df[df['Fecha'] == day]
+            count = dfOneDay['Texto'].str.contains(hashtag, case=False).sum()
+            numPerDay.append(count)
+        numHashtag.append(numPerDay)
+
+    sns.reset_orig()
+    fig = plt.figure(figsize=(9, 6))
+
+    colours = ["red", "blue", "green", "orange", "magenta"]
+
+    i = 0
+    for hashtag in elements[:5]:
+        plt.plot_date(days, numHashtag[i], colours[i], label=hashtag)
+        i += 1
+
+        # Se fija el titulo y etiquetas
+    plt.title(title, fontsize=20, fontweight='bold')
+    plt.xlabel("Fecha", fontsize=15)
+    plt.ylabel("Número de veces", fontsize=15)
+    plt.xticks(rotation=45)
+    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
+
+    fig.autofmt_xdate()
+    plt.show()
+
+
+start_time = time.time()
