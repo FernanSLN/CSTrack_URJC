@@ -112,7 +112,8 @@ def get_edges(values):
     return edges
 
 
-# Código para hacer gráfica de Hashtags en retuits:
+## Código para crear gráfica de barras  de Hashtags más usados en los retuits:
+# Seleccionamos las filas solo con RTs y creamos al final una lista que contiene todos los textos
 
 def get_hashtagsRT(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -125,6 +126,7 @@ def get_hashtagsRT(filename, keywords=None, stopwords=None, interest=None):
     listHashtagsRT = dfHashtagsRT['Texto'].to_numpy()
     return listHashtagsRT
 
+# Obtenemos los hashtags usados en esos textos
 
 def get_edgesHashRT(values):
     edges = []
@@ -134,7 +136,7 @@ def get_edgesHashRT(values):
             edges.append(hashtag)
     return edges
 
-
+# Organizamos los hashtags en orden de más usados a menos usados y creamos una lista con la cantidad de veces que aparecen
 def prepare_hashtags(list):
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list = [x.lower() for x in list]
@@ -175,7 +177,8 @@ def combined_edges(x,y):
     combined_edges = x + y
     return combined_edges
 
-# Código para calcular grafo de hashtags relacionados fuera de RTs
+## Código para calcular grafo de hashtags relacionados fuera de RTs. Este grafo opretende mostrar que
+##hashtags estan interrlacionados entre si.
 
 def get_hashtagsmain(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -414,7 +417,8 @@ def csv_degval(Digraph, filename):
                                'Rank'])
     return df.to_csv(filename, index=False)
 
-# Función para obtener los elementos de la two mode:
+## Funciones para obtener los elementos de la two mode:
+# Obtención de los elementos u,v y los edges que los unen para usuario y texto en los retuits:
 
 def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
     edges = []
@@ -429,6 +433,8 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
     v = list(subset['Texto'])
     edges = [tuple(x) for x in subset.to_numpy()]
     return edges, u, v
+
+# Obtención de los elemetnos u,v y los edges para los hashtags fuera de los retuits:
 
 def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
     edges = []
