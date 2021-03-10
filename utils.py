@@ -416,10 +416,11 @@ def csv_degval(Digraph, filename):
 
 # Función para obtener los elementos de la two mode:
 
-def get_uv_edgesRT(filename, keywords=None, stopwords=None):
+def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
     edges = []
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_interest(df, interest)
     dfRT = df[['Usuario', 'Texto']].copy()
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
@@ -429,6 +430,28 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None):
     edges = [tuple(x) for x in subset.to_numpy()]
     return edges, u, v
 
+def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
+    edges = []
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_interest(df, interest)
+    dfMain = df[['Usuario', 'Texto']].copy()
+    dfMain = dfMain.dropna()
+    dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
+    dfMain = dfMain.drop(dfEliminarRTs.index)
+    subset = dfMain[['Usuario', 'Texto']]
+    u = list(subset['Usuario'])
+    listHT = [list(x) for x in subset.to_numpy()]
+    stop_words = [['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']]
+    for row in listHT:
+        match = re.search('#(\w+)', row[1])
+        if match:
+            matchhash = match.group(1)
+            row[1] = matchhash
+            edges.append(row)
+            edges = [i for i in edges if i[1] != stop_words]
+    v = [x[1] for x in edges]
+    return edges, u, v
 
 # Wordcloud function for main hashtags:
 
