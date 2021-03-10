@@ -638,7 +638,7 @@ def dfRT(filename, keywords=None, stopwords=None, interest=None):
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
-    dfRT = df.dropna()
+    dfRT = dfRT.dropna()
     dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
