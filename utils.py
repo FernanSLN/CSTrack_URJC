@@ -258,11 +258,14 @@ def get_edgesMain(values):
             edges.append(hashtag)
     return edges
 
+# Hashtags del Bot:
+botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
-def prepare_hashtagsmain(list):
+def prepare_hashtagsmain(list, stopwords=None):
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list = [x.lower() for x in list]
     list = [word for word in list if word not in stop_words]
+    list = [word for word in list if word not in stopwords]
     mainHashtags = np.unique(list,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
@@ -716,3 +719,4 @@ def plottemporalserie(days, df, elements, title):
 
 
 start_time = time.time()
+
