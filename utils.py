@@ -464,7 +464,7 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
 
 def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
     edges = []
-    stop_words = ['CitizenScience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', '#CitizenScience']
+    stop_words = ['CitizenScience', 'citizenScience','citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', '#CitizenScience']
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_interest(df, interest)
