@@ -441,7 +441,7 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
 
 def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
     edges = []
-    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_interest(df, interest)
     dfMain = df[['Usuario', 'Texto']].copy()
@@ -461,6 +461,36 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
             edges = [i for i in edges if i[1] != stop_words]
     v = [x[1] for x in edges]
     return edges, u, v
+
+def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
+    edges = []
+    stop_words = ['CitizenScience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', '#CitizenScience']
+    df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_interest(df, interest)
+    df = df[['Usuario', 'Texto']].copy()
+    df = df.dropna()
+    idx = df['Texto'].str.contains('RT @', na=False)
+    dfRT = df[idx]  # Se seleccionan sólo las filas con RT
+    subset = dfRT[['Usuario', 'Texto']]
+    listHT = [list(x) for x in subset.to_numpy()]
+    for row in listHT:
+        match = re.search('#(\w+)', row[1])
+        if match:
+            matchhash = match.group(1)
+            row[1] = matchhash
+            edges.append(row)
+    if filter_hashtags == True:
+               for edge in edges:
+                   for word in edge:
+                        if word in stop_words:
+                            edges.remove(edge)
+    else:
+        pass
+    u = [x[0] for x in edges]
+    v = [x[1] for x in edges]
+    return edges, u, v
+
 
 # Wordcloud function for main hashtags:
 
