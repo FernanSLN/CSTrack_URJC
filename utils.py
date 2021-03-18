@@ -481,15 +481,21 @@ def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_ha
             row[1] = matchhash
             edges.append(row)
     if filter_hashtags == True:
-               for edge in edges:
-                   for word in edge:
-                        if word in stop_words:
-                            edges.remove(edge)
+        filter_edges = []
+        for edge in edges:
+           stop = False
+           for word in edge:
+               #print(word, word.lower() in stop_words)
+                if word.lower() in stop_words:
+                    stop = True
+           if not stop:
+               filter_edges.append(edge)
+
     else:
         pass
-    u = [x[0] for x in edges]
-    v = [x[1] for x in edges]
-    return edges, u, v
+    u = [x[0] for x in filter_edges]
+    v = [x[1] for x in filter_edges]
+    return filter_edges, u, v
 
 
 # Wordcloud function for main hashtags:
