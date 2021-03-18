@@ -481,12 +481,10 @@ def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_ha
             row[1] = matchhash
             edges.append(row)
     if filter_hashtags == True:
-               for edge in edges:
-                   for word in edge:
-                        if word in stop_words:
-                            edges.remove(edge)
-    else:
-        pass
+        for edge in edges:
+            for word in edge:
+                if word in stop_words:
+                    edges.remove(edge)
     u = [x[0] for x in edges]
     v = [x[1] for x in edges]
     return edges, u, v
