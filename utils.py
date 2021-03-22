@@ -95,10 +95,11 @@ def get_cites(filename, keywords=None, stopwords=None, interest=None):
 
 # Calcular grafos de RT:
 
-def get_retweets(filename, keywords=None, stopwords=None, interest=None):
+def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]  # Se seleccionan sólo las filas con RT

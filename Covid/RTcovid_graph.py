@@ -9,9 +9,6 @@ covid = ['covid', 'coronavirus', 'pandemic', 'COVID-19', 'SARS-COV-2', 'vaccine'
 rtlist = utils.get_retweets('/home/fernan/Documents/Lynguo_def2.csv', keywords=covid)
 
 rtedges = utils.get_edges(rtlist)
-
-print(len(rtedges))
-
 G = nx.Graph()
 G.add_edges_from(rtedges)
 subgraphs = utils.get_subgraphs(G)
