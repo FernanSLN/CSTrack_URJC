@@ -447,7 +447,7 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
 
 # Obtención de los elemetnos u,v y los edges para los hashtags fuera de los retuits:
 
-def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
+def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
     edges = []
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_topic(df, keywords, stopwords)
@@ -457,7 +457,6 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
     dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
     dfMain = dfMain.drop(dfEliminarRTs.index)
     subset = dfMain[['Usuario', 'Texto']]
-    u = list(subset['Usuario'])
     listHT = [list(x) for x in subset.to_numpy()]
     stop_words = [['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']]
     for row in listHT:
@@ -466,9 +465,21 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None):
             matchhash = match.group(1)
             row[1] = matchhash
             edges.append(row)
-            edges = [i for i in edges if i[1] != stop_words]
-    v = [x[1] for x in edges]
-    return edges, u, v
+    if filter_hashtags == True:
+        filter_edges = []
+        for edge in edges:
+            stop = False
+            for word in edge:
+                # print(word, word.lower() in stop_words)
+                if word.lower() in stop_words:
+                    stop = True
+            if not stop:
+                filter_edges.append(edge)
+    u = [x[0] for x in filter_edges]
+    v = [x[1] for x in filter_edges]
+    return filter_edges, u, v
+
+# Función para obtener los componentes de la two mode para hashtags en retuits:
 
 def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
     edges = []
@@ -498,9 +509,6 @@ def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_ha
                     stop = True
            if not stop:
                filter_edges.append(edge)
-
-    else:
-        pass
     u = [x[0] for x in filter_edges]
     v = [x[1] for x in filter_edges]
     return filter_edges, u, v
