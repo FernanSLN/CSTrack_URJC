@@ -60,6 +60,14 @@ def filter_by_topic(df, keywords, stopwords):
             df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
         df.to_csv("learning.csv")
     return df
+# Función para filtrado por subtopics:
+
+def filter_by_subtopic(df, keywords2, stopwords2):
+    if keywords2:
+        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
+        if stopwords2:
+            df = df[~df['Texto'].str.contains("|".join(stopwords2), case=False).any(level=0)]
+    return df
 
 # Función para filtrar por interés:
 
@@ -261,12 +269,11 @@ def get_edgesMain(values):
 # Hashtags del Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
-def prepare_hashtagsmain(list, stopwords=None):
+def prepare_hashtagsmain(list):
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    list = [x.lower() for x in list]
-    list = [word for word in list if word not in stop_words]
-    list = [word for word in list if word not in stopwords]
-    mainHashtags = np.unique(list,return_counts=True)
+    lista = [x.lower() for x in list]
+    lista = [word for word in lista if word not in stop_words]
+    mainHashtags = np.unique(lista,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
     return sortedNumberHashtags,sortedMainHashtags
@@ -471,7 +478,7 @@ def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_ha
     df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
-    dfRT = df[idx]  # Se seleccionan sólo las filas con RT
+    dfRT = df[idx]  # Se seleccionan sólo las filas conpython  RT
     subset = dfRT[['Usuario', 'Texto']]
     listHT = [list(x) for x in subset.to_numpy()]
     for row in listHT:

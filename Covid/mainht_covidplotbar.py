@@ -1,11 +1,13 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 import utils
-import RTcovid_graph
+from RTcovid_graph import covid
 
-hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords=RTcovid_graph.covid)
+hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords=covid)
 
 edges = utils.get_edgesMain(hashmain)
+
+print(edges)
 
 sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges)
 

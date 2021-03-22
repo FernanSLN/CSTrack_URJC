@@ -10,6 +10,8 @@ rtlist = utils.get_retweets('/home/fernan/Documents/Lynguo_def2.csv', keywords=c
 
 rtedges = utils.get_edges(rtlist)
 
+print(len(rtedges))
+
 G = nx.Graph()
 G.add_edges_from(rtedges)
 subgraphs = utils.get_subgraphs(G)
