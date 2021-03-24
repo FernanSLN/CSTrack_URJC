@@ -58,8 +58,8 @@ def filter_by_topic(df, keywords, stopwords):
         df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
         if stopwords:
             df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
-        df.to_csv("learning.csv")
     return df
+
 # Función para filtrado por subtopics:
 
 def filter_by_subtopic(df, keywords2, stopwords2):
@@ -72,8 +72,10 @@ def filter_by_subtopic(df, keywords2, stopwords2):
 # Función para filtrar por interés:
 
 def filter_by_interest(df, interest):
-    if interest:
-        df = df[df['Marca']==interest]
+    if interest is list:
+        df = df[df['Marca'].isin(interest)]
+    else:
+        df = df[df['Marca'] == interest]
     return df
 
 # Calcular grafo de citas:
