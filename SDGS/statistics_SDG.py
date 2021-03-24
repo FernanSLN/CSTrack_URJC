@@ -2,7 +2,8 @@ import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 import utils
 import pandas as pd
-
+import statistics as stats
+import re
 
 # Listado de Marcas de SDGS:
 
@@ -17,4 +18,17 @@ df = df[['Fecha', 'Texto', 'Usuario', 'Opinion', 'Marca', 'Impacto']]
 df_SDGS = utils.filter_by_interest(df, SDGS_marca)
 
 print('La cantidad de tweets obtenidos es:', len(df_SDGS))
+
+
+Opinion = df['Opinion'].dropna()
+Opinion = Opinion.astype(str)
+Opinion = int(Opinion)
+print(Opinion)
+
+Impacto = list(df['Impacto']. dropna())
+
+
+
+#print('La media de opinión es de:', stats.mean(Opinion))
+#print('La media de impacto es de:', stats.mean(Impacto))
 
