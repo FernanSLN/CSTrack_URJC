@@ -16,4 +16,5 @@ df = df[['Fecha', 'Texto', 'Usuario', 'Opinion', 'Marca', 'Impacto']]
 
 df_SDGS = utils.filter_by_interest(df, SDGS_marca)
 
-print('La cantidad de tweets obtenidos es ', len(df_SDGS))
+print('La cantidad de tweets obtenidos es:', len(df_SDGS))
+
