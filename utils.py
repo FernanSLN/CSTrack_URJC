@@ -72,10 +72,10 @@ def filter_by_subtopic(df, keywords2, stopwords2):
 # Función para filtrar por interés:
 
 def filter_by_interest(df, interest):
-    if interest is list:
-        df = df[df['Marca'].isin(interest)]
-    else:
+    if interest is str:
         df = df[df['Marca'] == interest]
+    else:
+        df = df[df['Marca'].isin(interest)]
     return df
 
 # Calcular grafo de citas:
