@@ -2,6 +2,7 @@ import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 import utils
 import pandas as pd
+import seaborn as sns
 import statistics as stats
 import re
 import numpy as np
@@ -42,21 +43,35 @@ print('La desviación estándar de impacto es de:', round((df_SDGS['Impacto'].st
 # Separamos los RTs del resto de tweets y vemos que usuarios tienen mayor impacto y opinión
 # df_SDGS.sort_values('Opinion', ascending=False))
 
-df_SDGSRT = df_SDGS[['Usuario','Texto', 'Opinion']]
+df_SDGSRT = df_SDGS[['Usuario','Texto', 'Impacto']]
 idx = df_SDGSRT['Texto'].str.contains('RT @', na=False)
 df_SDGSRT = df_SDGSRT[idx]  # Se seleccionan sólo las filas con RT
-df_SDGSRT = df_SDGSRT.sort_values('Opinion', ascending=False)
-#df_SDGSRT = df_SDGSRT.drop_duplicates(subset='Texto', keep=False,)
-retweets = [list(x) for x in df_SDGSRT.to_numpy()]
+df_SDGSRT = df_SDGSRT.sort_values('Impacto', ascending=False)
+df_SDGSRT = df_SDGSRT.drop_duplicates(subset='Texto', keep='first')
+subset = df_SDGSRT[['Texto', 'Impacto']]
+retweets = [list(x) for x in subset.to_numpy()]
 
-#edges = []
-#for row in retweets:
-    #reg = re.search('@(Heinz\w+)', row[1])
-    #if reg:
-        #matchRT = reg.group(1)
-        #row[1] = matchRT
-        #edges.append(row)
+names = [item[0] for item in retweets]
+numbers = [item[1] for item in retweets]
 
-idx2 = df_SDGSRT['Texto'].str.contains('RT @HeinzVH')
-dftry = df_SDGSRT[idx2]
-print(dftry.drop_duplicates(subset='Texto', keep='first'))
+
+#utils.plotbarchart(10, names, numbers, 'Top 10 tweets con mayor impacto', 'Tweets', 'Opinion' )
+
+#subset[:50].to_csv('top50 tweets retuiteados por impacto.csv', sep=';', index=False, decimal='.', encoding='utf-8', )
+
+arrobas = []
+for row in retweets:
+    reg = re.search('@(\w+)', row[0])
+    if reg:
+        matchRT = reg.group(1)
+        row[0] = matchRT
+        arrobas.append(row)
+
+df_arrobas = pd.DataFrame(arrobas, columns=['User', 'Impact'])
+df_arrobas = df_arrobas.groupby('User', as_index=False).mean()
+df_arrobas = df_arrobas.sort_values('Impact', ascending=False)
+users = df_arrobas['User']
+impacto = df_arrobas['Impact']
+utils.plotbarchart(10, users, impacto, 'Top 10 Usuarios con mayor impacto', 'Usuario', 'Impacto')
+
+

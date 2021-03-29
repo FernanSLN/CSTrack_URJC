@@ -27,7 +27,7 @@ def extractwords(doc):
 
     return wordslist
 
-df = pd.read_csv('/home/fernan/Documents/Lynguo_def2.csv', sep=';', encoding='latin-1', error_bad_lines=False)
+df = pd.read_csv('/home/fernan/Documents/Lynguo_def2.csv', sep=';', encoding='utf-8', error_bad_lines=False)
 subset = df['Texto']
 subset = subset.astype(str)
 texto = '\n\n'.join(subset.to_list())
@@ -37,6 +37,6 @@ lista = [x for x in wordlist[0]]
 lista2 = [x for x in wordlist[1]]
 data_tuples = list(zip(lista,lista2))
 words_df = pd.DataFrame(data_tuples,columns=['Word', 'Ntimes'])
-words_df.to_csv('wordlist.csv', sep=';', index=False, )
+words_df.to_csv('wordlist.csv', sep=';', index=False, encoding='utf-8')
 
 
