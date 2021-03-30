@@ -74,8 +74,10 @@ def filter_by_subtopic(df, keywords2, stopwords2):
 def filter_by_interest(df, interest):
     if interest is str:
         df = df[df['Marca'] == interest]
-    else:
+    if interest is list:
         df = df[df['Marca'].isin(interest)]
+    if interest is None:
+        pass
     return df
 
 # Calcular grafo de citas:
@@ -773,4 +775,49 @@ def plottemporalserie(days, df, elements, title):
 
 
 start_time = time.time()
+
+# Función para obtener los 50 tweets con mayor Impacto/Opinión y los usuarios con mayor impacto/opinión:
+
+def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, Impact=None, Opinion=None, n=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False, decimal=',', dtype={'Impacto':'float64'})
+    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']]
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df.dropna()
+    df['Opinion'] = df['Opinion'].replace(',', '.', regex=True).astype(float)
+    idx = df['Texto'].str.contains('RT @', na=False)
+    df = df[idx]
+    df = df.dropna()
+    if Impact == True:
+        w = 'Impact'
+        df = df[['Usuario', 'Texto', 'Impacto']]
+        df = df.sort_values('Impacto', ascending=False)
+        df = df.drop_duplicates(subset='Texto', keep='first')
+        subset = df[['Texto', 'Impacto']]
+    else:
+        if Opinion == True:
+            w = 'Opinion'
+            df = df[['Usuario', 'Texto', 'Opinion']]
+            df = df.sort_values('Opinion', ascending=False)
+            df = df.drop_duplicates(subset='Texto', keep='first')
+            subset = df[['Texto', 'Opinion']]
+    retweets = [list(x) for x in subset.to_numpy()]
+    names = [item[0] for item in retweets]
+    numbers = [item[1] for item in retweets]
+    CSV = subset[:50].to_csv('top50 retweets by ' + w + '.csv', sep=';', index=False, decimal='.', encoding='utf-8')
+    arrobas = []
+    for row in retweets:
+        reg = re.search('@(\w+)', row[0])
+        if reg:
+            matchRT = reg.group(1)
+            row[0] = matchRT
+            arrobas.append(row)
+    df_arrobas = pd.DataFrame(arrobas, columns=['User', 'Values'])
+    df_arrobas = df_arrobas.groupby('User', as_index=False).mean()
+    df_arrobas = df_arrobas.sort_values('Values', ascending=False)
+    users = df_arrobas['User']
+    values = df_arrobas['Values']
+    plotbarchart(n, users, values, 'Top ' + str(n) + ' Users with higher ' + w, 'User', w)
+
 
