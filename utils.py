@@ -791,20 +791,18 @@ def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, st
     df = df.dropna()
     if Impact == True:
         w = 'Impact'
-        df = df[['Usuario', 'Texto', 'Impacto']]
+        df = df[['Texto', 'Impacto']]
         df = df.sort_values('Impacto', ascending=False)
         df = df.drop_duplicates(subset='Texto', keep='first')
         subset = df[['Texto', 'Impacto']]
     else:
         if Opinion == True:
             w = 'Opinion'
-            df = df[['Usuario', 'Texto', 'Opinion']]
+            df = df[['Texto', 'Opinion']]
             df = df.sort_values('Opinion', ascending=False)
             df = df.drop_duplicates(subset='Texto', keep='first')
             subset = df[['Texto', 'Opinion']]
     retweets = [list(x) for x in subset.to_numpy()]
-    names = [item[0] for item in retweets]
-    numbers = [item[1] for item in retweets]
     CSV = subset[:50].to_csv('top50 retweets by ' + w + '.csv', sep=';', index=False, decimal='.', encoding='utf-8')
     arrobas = []
     for row in retweets:
@@ -821,3 +819,37 @@ def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, st
     plotbarchart(n, users, values, 'Top ' + str(n) + ' Users with higher ' + w, 'User', w)
 
 
+def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, Impact=None, Opinion=None, n=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False, decimal=',',
+                     dtype={'Impacto': 'float64'})
+    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']]
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df.dropna()
+    df['Opinion'] = df['Opinion'].replace(',', '.', regex=True).astype(float)
+    idx = df[df['Texto'].str.contains('RT @', na=False)]
+    df = df.drop(idx.index)
+    df = df.dropna()
+    if Impact == True:
+        w = 'Impact'
+        df = df[['Usuario', 'Texto', 'Impacto']]
+        df = df.sort_values('Impacto', ascending=False)
+        df = df.drop_duplicates(subset='Texto', keep='first')
+        subset = df[['Usuario', 'Texto', 'Impacto']]
+    else:
+        if Opinion == True:
+            w = 'Opinion'
+            df = df[['Usuario', 'Texto', 'Opinion']]
+            df = df.sort_values('Opinion', ascending=False)
+            df = df.drop_duplicates(subset='Texto', keep='first')
+            subset = df[['Usuario', 'Texto', 'Opinion']]
+    CSV = subset[:50].to_csv('top50 tweets by ' + w + '.csv', sep=';', index=False, decimal='.', encoding='utf-8')
+    lista = [list(x) for x in subset.to_numpy()]
+    df_Users = pd.DataFrame(lista, columns=['User', 'Texto', 'Values'])
+    df_Users = df_Users[['User', 'Values']]
+    df_Users = df_Users.groupby('User', as_index=False).mean()
+    df_Users = df_Users.sort_values('Values', ascending=False)
+    users = df_Users['User']
+    values = df_Users['Values']
+    plotbarchart(n, users, values, 'Top ' + str(n) + ' Users with higher ' + w, 'User', w)
