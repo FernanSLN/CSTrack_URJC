@@ -881,6 +881,6 @@ def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, s
     df_sentiment['Texto'] = Texto
     df_sentiment = df_sentiment[['Usuario', 'Texto', 'compound']]
     df_sentiment['compound'] = df_sentiment.compound.multiply(100)
-    df_sentiment.rename(columns={'compound':'Sentiment'})
+    df_sentiment.rename({'compound':'Sentiment'}, axis='columns')
     CSV = df_sentiment.to_csv('vaderSentiment.csv', sep=';', decimal='.', encoding='utf-8')
     return CSV
