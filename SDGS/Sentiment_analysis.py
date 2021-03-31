@@ -2,9 +2,7 @@ import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 import utils
 import pandas as pd
-import statistics as stats
 import re
-import numpy as np
 
 df_sentiment = pd.read_csv('/home/fernan/Documents/Proyectos/CSTrack-URJC/SDGS/vaderSentiment.csv', sep=';',
                            encoding='utf-8', error_bad_lines=False)
