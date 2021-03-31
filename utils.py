@@ -13,6 +13,7 @@ import nltk
 from nltk.corpus import stopwords
 import matplotlib.dates as mdates
 import time
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # stop_words para emplear en filtrados:
 
@@ -853,3 +854,33 @@ def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stop
     users = df_Users['User']
     values = df_Users['Values']
     plotbarchart(n, users, values, 'Top ' + str(n) + ' Users with higher ' + w, 'User', w)
+
+# Analisis de sentimiento con VaderSentiment
+
+analyser = SentimentIntensityAnalyzer()
+def sentiment_analyzer_scores(sentence):
+        score = analyser.polarity_scores(sentence)
+        return score
+
+def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df[['Texto', 'Usuario']]
+    df = df.dropna()
+    Users = df['Usuario']
+    Texto = df['Texto']
+    sentences = Texto
+    list_of_dicts = []
+    for sentence in sentences:
+        adict = analyser.polarity_scores(sentence)
+        list_of_dicts.append(adict)
+    df_sentiment = pd.DataFrame(list_of_dicts)
+    df_sentiment['Usuario'] = Users
+    df_sentiment['Texto'] = Texto
+    df_sentiment = df_sentiment[['Usuario', 'Texto', 'compound']]
+    df_sentiment['compound'] = df_sentiment.compound.multiply(100)
+    df_sentiment.rename(columns={'compound':'Sentiment'})
+    CSV = df_sentiment.to_csv('vaderSentiment.csv', sep=';', decimal='.', encoding='utf-8')
+    return CSV
