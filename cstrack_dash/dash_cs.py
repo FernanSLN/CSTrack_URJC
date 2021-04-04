@@ -1,0 +1,441 @@
+"""
+This app creates a simple sidebar layout using inline style arguments and the
+dbc.Nav component.
+dcc.Location is used to track the current location. There are three callbacks,
+one uses the current location to render the appropriate page content, the other
+two are used to toggle the collapsing sections in the sidebar. They control the
+collapse component and the CSS that rotates the chevron icon respectively.
+For more details on building multi-page Dash applications, check out the Dash
+documentation: https://dash.plot.ly/urls
+"""
+import dash
+import pandas as pd
+import dash_utils
+import dash_table
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output, State
+import style
+from generate_utils import filter_by_topic
+
+# data load
+print("DATA LOAD")
+df = pd.read_csv("Lynguo_def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
+df_all_h = dash_utils.get_all_hashtags(df)
+df_rt_h = dash_utils.get_rt_hashtags(df)
+df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df)
+df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
+df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
+df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
+wc_main = dash_utils.wordcloudmain(df)
+#df_deg = dash_utils.get_degrees(df)
+#df_deg.to_csv("dashdeg.csv")
+
+df_cstrack = dash_utils.get_twitter_info_df()
+
+G = dash_utils.get_graph_rt(df)
+
+
+print("AH")
+# link fontawesome to get the chevron icons
+FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
+app.config.suppress_callback_exceptions = True
+server = app.server
+print("HELLO")
+submenu_1 = [
+    html.Li(
+        # use Row and Col components to position the chevrons
+        dbc.Row(
+            [
+                dbc.Col("Most used hashtags"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-1",
+    ),
+    # we use the Collapse component to hide and reveal the navigation links
+    dbc.Collapse(
+        [
+            dbc.NavLink("All hashtags", href="/hashtags/all"),
+            dbc.NavLink("Retweeted hashtags", href="/hashtags/rt"),
+        ],
+        id="submenu-1-collapse",
+    ),
+]
+
+submenu_2 = [
+    html.Li(
+        dbc.Row(
+            [
+                dbc.Col("Time series"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-2",
+    ),
+    dbc.Collapse(
+        [
+            dbc.NavLink("All hashtags", href="/timeseries/allhashtags"),
+            dbc.NavLink("Retweeted hashtags", href="/timeseries/rthashtags"),
+        ],
+        id="submenu-2-collapse",
+    ),
+]
+
+submenu_3 = [
+    html.Li(
+        dbc.Row(
+            [
+                dbc.Col("Wordcloud"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-3",
+    ),
+    dbc.Collapse(
+        [
+            dbc.NavLink("Wordcloud", href="/wordcloud"),
+        ],
+        id="submenu-3-collapse",
+    ),
+]
+
+submenu_4 = [
+    html.Li(
+        dbc.Row(
+            [
+                dbc.Col("User interactions"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-4",
+    ),
+    dbc.Collapse(
+        [
+            dbc.NavLink("Retweets", href="/user/retweets"),
+            dbc.NavLink("Retweeted hashtags", href="/timeseries/rthashtags"),
+        ],
+        id="submenu-4-collapse",
+    ),
+]
+
+sidebar = html.Div(
+    [
+        dbc.Col(html.Img(src=app.get_asset_url('cstrack_logo.png'), height="50px")),
+        html.Hr(),
+        html.P(
+            "Available graphs", className="lead"
+        ),
+        dbc.Nav([dbc.NavLink("CS-Track stats", href="/", active="exact"), dbc.NavLink("Retweet graph", href="/graph/retweets", active="exact")] + submenu_1 + submenu_2 + submenu_3 + submenu_4, vertical=True),
+    ],
+    style=style.SIDEBAR_STYLE,
+    id="sidebar",
+)
+
+content = html.Div(id="page-content", style=style.CONTENT_STYLE)
+
+app.layout = html.Div([dcc.Location(id="url"), sidebar, content])
+
+
+# this function is used to toggle the is_open property of each Collapse
+def toggle_collapse(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+# this function applies the "open" class to rotate the chevron
+def set_navitem_class(is_open):
+    if is_open:
+        return "open"
+    return ""
+
+
+for i in range(1, 5):
+    app.callback(
+        Output(f"submenu-{i}-collapse", "is_open"),
+        [Input(f"submenu-{i}", "n_clicks")],
+        [State(f"submenu-{i}-collapse", "is_open")],
+    )(toggle_collapse)
+
+    app.callback(
+        Output(f"submenu-{i}", "className"),
+        [Input(f"submenu-{i}-collapse", "is_open")],
+    )(set_navitem_class)
+
+
+@app.callback(Output("page-content", "children"), [Input("url", "pathname")])
+def render_page_content(pathname):
+    if pathname == "/":
+        controls = dash_utils.get_controls_rt("input-rt-cstrack", "hashtag-rt-cstrack")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_retweets', figure=dash_utils.get_cstrack_graph(df_cstrack, "Retweets", "Retweets received")), md=8),
+                        justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_followers', figure=dash_utils.get_cstrack_graph(df_cstrack, "Followers", "Followers")),
+                                md=8),
+                        justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_followers',
+                                          figure=dash_utils.get_cstrack_graph(df_cstrack, "Tweets", "Number of Tweets")),
+                                md=8),
+                        justify="center")
+                ])
+            ),
+        ]),
+        return html_plot
+    elif pathname == "/hashtags/all":
+        print("PATH 1")
+        controls = dash_utils.get_controls_rt("input-key-all", "hashtag-number-all")
+        """graph_fig = dbc.Col(dcc.Graph(id='graph_all_hashtags', figure=dash_utils.get_figure(df_all_h[0:10])), md=8)
+        graph = dash_utils.set_loading(controls, graph_fig)"""
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_all_hashtags', figure=dash_utils.get_figure(df_all_h[0:10])), md=8),
+                        justify="center")
+                ])
+            ),
+        ]),
+
+        return html_plot
+    elif pathname == "/hashtags/rt":
+        controls = dash_utils.get_controls_rt("input-key-rt", "hashtag-number-rt")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_rt_hashtags', figure=dash_utils.get_figure(df_rt_h[0:10])), md=8),
+                        justify="center")
+                ])
+            ),
+
+        ]),
+        return html_plot
+    elif pathname == "/timeseries/allhashtags":
+        print("PATH 2")
+        controls = dash_utils.get_controls_rt("input-key-ts-all", "hashtag-number-ts-all")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(dbc.Col(dcc.Graph(id='graph_ts_all_hashtags', figure=dash_utils.get_temporal_figure(df_ts)),
+                                    md=8), justify="center"),
+                ])
+            ),
+        ]),
+        return html_plot
+
+    elif pathname == "/wordcloud":
+        controls = dash_utils.get_controls_rt("input-key-ws", "hashtag-number-ts-all")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(dbc.Col(html.Img(src=app.get_asset_url('wc2.png'))), justify="center"),
+                ])
+            ),
+        ]),
+        return html_plot
+    elif pathname == "/timeseries/rthashtags":
+        print("PATH 2")
+        controls = dash_utils.get_controls_rt("input-key-ts-rt", "hashtag-number-ts-rt")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_rt_all_hashtags', figure=dash_utils.get_temporal_figure(df_ts_rt)),
+                                md=8), justify="center"),
+                ])
+            ),
+        ]),
+        return html_plot
+
+    elif pathname == "/user/retweets":
+        print("PATH 2")
+        controls = dash_utils.get_controls_rt("input-key-ts-rt","hashtag-number-ts-rt")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(dbc.Col(
+    
+                        dash_table.DataTable(
+                            id='datatable-interactivity',
+                            columns=[
+                                {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
+                                if i == "iso_alpha3" or i == "year" or i == "id"
+                                else {"name": i, "id": i, "deletable": True, "selectable": True}
+                                for i in df_deg.columns
+                            ],
+                            data=df_deg.to_dict('records'),  # the contents of the table
+                            editable=True,  # allow editing of data inside all cells
+                            filter_action="native",  # allow filtering of data by user ('native') or not ('none')
+                            sort_action="native",  # enables data to be sorted per-column by user or not ('none')
+                            sort_mode="single",  # sort across 'multi' or 'single' columns
+                            column_selectable="multi",  # allow users to select 'multi' or 'single' columns
+                            row_selectable="multi",  # allow users to select 'multi' or 'single' rows
+                            row_deletable=True,  # choose if user can delete a row (True) or not (False)
+                            selected_columns=[],  # ids of columns that user selects
+                            selected_rows=[],  # indices of rows that user selects
+                            page_action="native",  # all data is passed to the table up-front or not ('none')
+                            page_current=0,  # page number that user is on
+                            page_size=10,  # number of rows visible per page
+                            style_data={  # overflow cells' content into multiple lines
+                                'whiteSpace': 'normal',
+                                'height': 'auto'
+                            }
+                        )
+                        ,md=8), justify="center"),
+                ])
+            ),
+        ]),
+        return html_plot
+    elif pathname == "/graph/retweets":
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_retweets', figure=dash_utils.get_graph_figure(G)), md=8),
+                        justify="center")
+                ])
+            ),
+
+        ]),
+        return html_plot
+
+    # If the user tries to reach a different page, return a 404 message
+    return dbc.Jumbotron(
+        [
+            html.H1("404: Not found", className="text-danger"),
+            html.Hr(),
+        ]
+    )
+
+
+@app.callback(
+    Output('graph_all_hashtags', 'figure'),
+    [Input("input-key-all", "n_submit"), Input("hashtag-number-all", "n_submit")],
+    [State('input-key-all', "value"), State('hashtag-number-all', "value")]
+)
+def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
+    if (n_submits + n_submits2) == 0:
+        return dash.no_update
+    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=None)
+    df_rt = dash_utils.get_rt_hashtags(df_rt)
+    df_rt = df_rt[:hashtag_number]
+    return dash_utils.get_figure(df_rt)
+
+
+@app.callback(
+    Output('graph_rt_hashtags', 'figure'),
+    [Input("input-key-rt", "n_submit"), Input("hashtag-number-rt", "n_submit")],
+    [State('input-key-rt', "value"), State('hashtag-number-rt', "value")]
+)
+def update_hashtags_plot(n_submits, n_submits2, hashtag_number, input_key):
+    if (n_submits + n_submits2) == 0:
+        return dash.no_update
+    df_r = filter_by_topic(df, keywords=input_key.split(","), stopwords=None)
+    df_r = dash_utils.get_rt_hashtags(df_r)
+    df_r = df_r[:hashtag_number]
+    return dash_utils.get_figure(df_r)
+
+
+@app.callback(
+    Output('graph_ts_all_hashtags', 'figure'),
+    [Input("input-key-ts-all", "n_submit"), Input("hashtag-number-ts-all", "n_submit")],
+    [State('input-key-ts-all', "value"), State('hashtag-number-ts-all', "value")]
+)
+def update_ts_all_plot(n_submits, n_submits2, hashtag_number, input_key):
+    print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
+    if (n_submits + n_submits2) == 0:
+        return dash.no_update
+    df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=input_key.split(","))
+    df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
+    return dash_utils.get_temporal_figure(df_ts, n_hashtags=hashtag_number)
+
+
+@app.callback(
+    Output('graph_ts_rt_hashtags', 'figure'),
+    [Input("input-key-ts-rt", "n_submit"), Input("hashtag-number-ts-rt", "n_submit")],
+    [State('input-key-ts-rt', "value"), State('hashtag-number-ts-rt', "value")]
+)
+def update_ts_rt_plot(n_submits, n_submits2, hashtag_number, input_key):
+    print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
+    if (n_submits + n_submits2) == 0:
+        return dash.no_update
+    df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
+    df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
+    return dash_utils.get_temporal_figure(df_ts_rt, n_hashtags=hashtag_number)
+
+
+if __name__ == "__main__":
+    print("HI")
+    app.run_server(port=6123,use_reloader=False, debug=True)
