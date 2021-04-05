@@ -380,6 +380,29 @@ def nx2gt(nxG):
 
 # Función para extraer los valores de degree,outdegree, eigenvector y betweenness y crear un csv:
 
+def get_degrees(G):
+    import networkit as nk
+    from operator import itemgetter
+    n_g = nk.nxadapter.nx2nk(G)
+    idmap = dict((u, id) for (id, u) in zip(G.nodes(), range(G.number_of_nodes())))
+    btwn = nk.centrality.Betweenness(n_g)
+    ec = nk.centrality.EigenvectorCentrality(n_g)
+    ec.run()
+    btwn.run()
+    bt_results = sorted(btwn.ranking(), key=itemgetter(0))
+    bt_results = [round(value,4) for id_, value in bt_results]
+    ec_results = sorted(ec.ranking(), key=itemgetter(0))
+    ec_results = [round(value,4) for id_, value in ec_results]
+    names = []
+    in_degrees = []
+    out_degrees = []
+    nodes = n_g.iterNodes()
+    for key in nodes:
+        names.append(idmap[key])
+        in_degrees.append(n_g.degreeIn(key))
+        out_degrees.append(n_g.degreeOut(key))
+    return pd.DataFrame({"Name": names, "InD.": in_degrees, "OutD.": out_degrees, "Eigen C.": ec_results, "Betweenness C": bt_results})
+
 def csv_degval(Digraph, filename):
     list_values = []
     outdegrees2 = dict(Digraph.out_degree())
