@@ -884,3 +884,45 @@ def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, s
     df_sentiment.rename({'compound':'Sentiment'}, axis='columns')
     CSV = df_sentiment.to_csv('vaderSentiment.csv', sep=';', decimal='.', encoding='utf-8')
     return CSV
+
+# Gráfico de barras y csv de users top en Sentiment:
+
+def sentiment_resultsRT(filename, n=None):
+    df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df_sentiment = df_sentiment[['Texto', 'compound']]
+    idx = df_sentiment['Texto'].str.contains('RT @', na=False)
+    df_sentimentRT = df_sentiment[idx]
+    retweets = [list(x) for x in df_sentimentRT.to_numpy()]
+    arrobas = []
+    for row in retweets:
+        reg = re.search('@(\w+)', row[0])
+    if reg:
+        matchRT = reg.group(1)
+        row[0] = matchRT
+        arrobas.append(row)
+
+    df_arrobas = pd.DataFrame(arrobas, columns=['User', 'Values'])
+    df_arrobas = df_arrobas.groupby('User', as_index=False).mean()
+    df_arrobas = df_arrobas.sort_values('Values', ascending=False)
+    users = df_arrobas['User']
+    values = df_arrobas['Values']
+    plotbarchart(n, users, values, 'Top' + str(n) + 'Retweeted Users with higher Sentiment', 'User', 'Sentiment')
+    df_SRT = df_sentimentRT.sort_values('compound', ascending=False)
+    dfSRT = df_SRT.drop_duplicates(subset='Texto', keep='first')
+    df_SRT[:50].to_csv('top50 retweets by Sentiment.csv', sep=';', index=False, decimal='.', encoding='utf-8')
+
+def sentiment_results(filename, n=None):
+    df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    idx = df_sentiment[df_sentiment['Texto'].str.contains('RT @', na=False)]
+    df_sentiment = df_sentiment.drop(idx.index)
+    df_sentiment = df_sentiment.sort_values('compound', ascending=False)
+    df_sentiment = df_sentiment.drop_duplicates(subset='Texto', keep='first')
+    df_sentiment[:50].to_csv('top 50 tweets by Sentiment.csv', sep=';', index=False, decimal='.', encoding='utf-8')
+    subset = df_sentiment[['Usuario', 'compound']]
+    subset = subset.groupby('Usuario', as_index=False).mean()
+    subset = subset.sort_values('compound', ascending=False)
+    users = subset['Usuario']
+    values = subset['compound']
+    plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
+
+
