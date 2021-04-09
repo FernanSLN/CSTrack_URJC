@@ -18,9 +18,11 @@ import dash_html_components as html
 from dash.dependencies import Input, Output, State
 import style
 from generate_utils import filter_by_topic
+import map_utils as mu
 
 # data load
 print("DATA LOAD")
+df_map = dash_utils.get_map_df()
 df = pd.read_csv("Lynguo_def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
 df_all_h = dash_utils.get_all_hashtags(df)
 df_rt_h = dash_utils.get_rt_hashtags(df)
@@ -29,12 +31,14 @@ df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
 df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
 df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
 wc_main = dash_utils.wordcloudmain(df)
-#df_deg = dash_utils.get_degrees(df)
+df_deg = dash_utils.get_degrees(df)
 #df_deg.to_csv("dashdeg.csv")
 
-df_cstrack = dash_utils.get_twitter_info_df()
-
+#df_cstrack = dash_utils.get_twitter_info_df()
 G = dash_utils.get_graph_rt(df)
+communities = dash_utils.get_communities(G)
+com = dash_utils.get_community_graph(G,communities)
+
 
 
 print("AH")
@@ -138,6 +142,53 @@ submenu_4 = [
     ),
 ]
 
+submenu_5 = [
+    html.Li(
+        dbc.Row(
+            [
+                dbc.Col("Communities"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-5",
+    ),
+    dbc.Collapse(
+        [
+            dbc.NavLink("Retweet", href="/graph/communities"),
+            dbc.NavLink("Hashtags", href="/graph/hashtags"),
+        ],
+        id="submenu-5-collapse",
+    ),
+]
+
+
+submenu_6 = [
+    html.Li(
+        dbc.Row(
+            [
+                dbc.Col("Geomaps"),
+                dbc.Col(
+                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
+                ),
+            ],
+            className="my-1",
+        ),
+        style={"cursor": "pointer"},
+        id="submenu-6",
+    ),
+    dbc.Collapse(
+        [
+            dbc.NavLink("Tweets and Follows per country", href="/geomap/activity"),
+            dbc.NavLink("Locations", href="/geomap/locations"),
+        ],
+        id="submenu-6-collapse",
+    ),
+]
+
 sidebar = html.Div(
     [
         dbc.Col(html.Img(src=app.get_asset_url('cstrack_logo.png'), height="50px")),
@@ -145,7 +196,7 @@ sidebar = html.Div(
         html.P(
             "Available graphs", className="lead"
         ),
-        dbc.Nav([dbc.NavLink("CS-Track stats", href="/", active="exact"), dbc.NavLink("Retweet graph", href="/graph/retweets", active="exact")] + submenu_1 + submenu_2 + submenu_3 + submenu_4, vertical=True),
+        dbc.Nav([dbc.NavLink("CS-Track stats", href="/", active="exact")] + submenu_1 + submenu_2 + submenu_3 + submenu_4 + submenu_5 + submenu_6, vertical=True),
     ],
     style=style.SIDEBAR_STYLE,
     id="sidebar",
@@ -170,7 +221,7 @@ def set_navitem_class(is_open):
     return ""
 
 
-for i in range(1, 5):
+for i in range(1, 7):
     app.callback(
         Output(f"submenu-{i}-collapse", "is_open"),
         [Input(f"submenu-{i}", "n_clicks")],
@@ -321,7 +372,7 @@ def render_page_content(pathname):
                 children=html.Div(id="loading-output", children=[
                     dbc.Row(controls, justify="center"),
                     dbc.Row(dbc.Col(
-    
+
                         dash_table.DataTable(
                             id='datatable-interactivity',
                             columns=[
@@ -353,7 +404,46 @@ def render_page_content(pathname):
             ),
         ]),
         return html_plot
-    elif pathname == "/graph/retweets":
+    elif pathname == "/graph/communities":
+        options = dash_utils.get_controls_community(communities)
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(options, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='graph_communities', figure=dash_utils.get_graph_figure(com)), md=8),
+                        justify="center")
+                ])
+            ),
+
+        ]),
+        return html_plot
+    elif pathname == "/geomap/activity":
+        print("geomap")
+        options = dash_utils.get_controls_activity()
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(options, justify="center"),
+                    dbc.Row(
+                        dbc.Col(dcc.Graph(id='geomap_activity', figure=mu.get_map_stats_by_country(df_map, "tweets")), md=8))
+                ])
+            ),
+
+        ]),
+        return html_plot
+
+    elif pathname =="/geomap/locations":
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -363,13 +453,13 @@ def render_page_content(pathname):
                 type="default",
                 children=html.Div(id="loading-output", children=[
                     dbc.Row(
-                        dbc.Col(dcc.Graph(id='graph_retweets', figure=dash_utils.get_graph_figure(G)), md=8),
-                        justify="center")
+                        dbc.Col(dcc.Graph(id='geomap_locations', figure=mu.get_map_locations(df_map)), md=8))
                 ])
             ),
 
         ]),
         return html_plot
+
 
     # If the user tries to reach a different page, return a 404 message
     return dbc.Jumbotron(
@@ -436,6 +526,22 @@ def update_ts_rt_plot(n_submits, n_submits2, hashtag_number, input_key):
     return dash_utils.get_temporal_figure(df_ts_rt, n_hashtags=hashtag_number)
 
 
+@app.callback(
+    dash.dependencies.Output('geomap_activity', 'children'),
+    [dash.dependencies.Input('activity_type', 'value')])
+def update_com_graph(value):
+    return mu.get_map_stats_by_country(df_map, value)
+
+
+@app.callback(
+    dash.dependencies.Output('graph_communities', 'children'),
+    [dash.dependencies.Input('com_number', 'value')])
+def update_com_graph(value):
+    com = dash_utils.get_community_graph(G,communities, int(value))
+    return dash_utils.get_graph_figure(com, int(value))
+
+
 if __name__ == "__main__":
     print("HI")
-    app.run_server(port=6123,use_reloader=False, debug=True)
+    app.run_server(host="0.0.0.0",port=6123,use_reloader=False, debug=True)
+
