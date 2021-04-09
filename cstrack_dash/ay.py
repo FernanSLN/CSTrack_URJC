@@ -1,34 +1,35 @@
-import community as cl
-import dash_utils
-import pandas as pd
-import matplotlib.cm as cm
-import networkx as nx
-import matplotlib.pyplot as plt
-import datetime
-import cugraph
-import networkit as nk
+import requests
+import urllib.parse
+import pymongo
+import json
 
-df = pd.read_csv("Lynguo_def2.csv", sep=";", encoding="latin-1", error_bad_lines=False)
-start = datetime.datetime.now()
-G = dash_utils.get_graph_rt(df)
-n_g = nk.nxadapter.nx2nk(G)
-idmap = dict((u, id) for (id, u) in zip(G.nodes(), range(G.number_of_nodes())))
-btwn = nk.centrality.Betweenness(n_g)
-ec = nk.centrality.EigenvectorCentrality(n_g)
-ec.run()
-btwn.run()
-nodes = n_g.iterNodes()
-for node in nodes:
-    print("In:", n_g.degreeIn(node))
-    print("Out:", n_g.degreeOut(node))
-"""print(idmap)
-communities = nk.community.detectCommunities(n_g)
-for i in range(0, communities.numberOfSubsets()):
-    for member in communities.getMembers(i):
-        print(idmap[member], end=",")
-    print("---- COMUNITY -----")"""
-print("END")
-print(btwn.ranking()[:10])
-print("EIGENVECTOR")
-print(ec.ranking()[:10])
-print("Time:", datetime.datetime.now() - start)
+db = pymongo.MongoClient(host="f-l2108-pc09.aulas.etsit.urjc.es", port=21000)
+col_people = db["cstrack"]["users"]
+col_coordinates = db["cstrack"]["coordinates"]
+localizations = list(col_people.find())
+dividers = [",", "."]
+for row in localizations:
+    correct = False
+    tries = 0
+    base_address = row["location"]
+    print(base_address)
+    if len(base_address) > 0:
+        while not correct and tries < 2:
+            address = base_address.split(dividers[tries])[0]
+            try:
+                user_exists = col_coordinates.find_one({"screen_name": row["screen_name"]})
+                if user_exists is None:
+
+                    url = 'https://nominatim.openstreetmap.org/search/' + urllib.parse.quote(address) +'?format=json'
+                    print(url)
+                    response = requests.get(url).json()
+
+                    data = {"lat": response[0]["lat"], "lon": response[0]["lon"], "screen_name": row["screen_name"]}
+                    col_coordinates.insert_one(data)
+                correct = True
+            except IndexError:
+                tries += 1
+            except json.decoder.JSONDecodeError:
+                tries += 1
+
+
