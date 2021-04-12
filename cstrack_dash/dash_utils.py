@@ -10,6 +10,8 @@ import re
 import networkx as nx
 import pymongo
 import plotly.graph_objects as go
+import networkit as nk
+from functools import lru_cache
 
 
 # Custom function to create an edge between node x and node y, with a given text and width
@@ -23,7 +25,7 @@ def make_edge(x, y, text):
                       mode='lines')
 
 
-def get_graph_figure(G):
+def get_graph_figure(G, i = 0):
     print("hello")
     pos = nx.spring_layout(G, iterations=10)
     print("Positions given")
@@ -38,7 +40,6 @@ def get_graph_figure(G):
         mode='lines')
     count = 0
     for edge in G.edges():
-        print("Edge", count)
         x0, y0 = G.nodes[edge[0]]['pos']
         x1, y1 = G.nodes[edge[1]]['pos']
         edge_trace['x'] += tuple([x0, x1, None])
@@ -66,7 +67,6 @@ def get_graph_figure(G):
             line=dict(width=0)))
     count = 0
     for node in G.nodes():
-        print("Node", count)
         x, y = G.nodes[node]['pos']
         node_trace['x'] += tuple([x])
         node_trace['y'] += tuple([y])
@@ -79,7 +79,7 @@ def get_graph_figure(G):
 
     fig = go.Figure(data=[edge_trace, node_trace],
                     layout=go.Layout(
-                        title='<br>AT&T network connections',
+                        title='Community ' + str(i + 1),
                         titlefont=dict(size=16),
                         showlegend=False,
                         hovermode='closest',
@@ -93,6 +93,29 @@ def get_graph_figure(G):
 
     print("Finish creating figure")
     return fig
+
+
+def get_community_graph(g, community, i=0):
+    c = nx.DiGraph()
+    for node in community[i]:
+        list_edges = g.edges(node)
+        list_edges = [edge for edge in list_edges if edge[1] in community[i]]
+        c.add_edges_from(list_edges)
+    return c
+
+@lru_cache(maxsize=None)
+def get_communities(g):
+    n_g = nk.nxadapter.nx2nk(g)
+    idmap = dict((u, id) for (id, u) in zip(g.nodes(), range(g.number_of_nodes())))
+    communities = nk.community.detectCommunities(n_g)
+    list_communities = []
+    for i in range(0, communities.numberOfSubsets()):
+        list_members = []
+        for member in communities.getMembers(i):
+            list_members.append(idmap[member])
+        if len(list_members) > 5:
+            list_communities.append(list_members)
+    return list_communities
 
 def get_n_tweets(df):
     base_date = df.iloc[0]["Date"]
@@ -245,12 +268,15 @@ def get_graph_rt(df):
 
 
 def get_degrees(df):
+    from operator import itemgetter
+    import datetime
+    start = datetime.datetime.now()
     retweetList = utils.get_retweets(df)
     retweetEdges = utils.get_edges(retweetList)
     G = nx.DiGraph()
     G.add_edges_from(retweetEdges)
-    df = utils.csv_degval(G, "test.csv")
-    return df
+    print("FINALIZA,", datetime.datetime.now() - start)
+    return utils.get_degrees(G)
 
 
 def get_twitter_info_df():
@@ -264,6 +290,62 @@ def get_twitter_info_df():
     return df
 
 
+def get_controls_community(communities):
+    dropdown_options = []
+    for i in range(0, len(communities)):
+        dropdown_options.append({"label": str(i), "value": i})
+    controls = dbc.Form(
+        [
+            dbc.FormGroup(
+                [
+                    dbc.Label("Community:"),
+                    dcc.Dropdown(
+                        id="com_number",
+                        options=dropdown_options,
+                        value=0,
+                        clearable=False,
+                        style = {"margin-left": "2px"}
+                    )
+                ],
+                className="mr-3",
+            ),
+            dbc.FormGroup(
+                [
+                    dbc.Label("Algorithm:"),
+                    dcc.Dropdown(
+                        id="com_algorithm",
+                        options=[{"label": "Louvain", "value": "louvain"}, {"label": "Label propagation", "value": "propagation"}],
+                        value="louvain",
+                        clearable=False,
+                        style={"width": "200px", "margin-left": "2px"}
+                    )
+                ],
+            ),
+        ],
+        inline=True
+    )
+    return controls
+@lru_cache(maxsize=None)
+def get_controls_activity():
+    controls = dbc.Form(
+        [
+            dbc.FormGroup(
+                [
+                    dbc.Label("Activity:"),
+                    dcc.Dropdown(
+                        id="activity_type",
+                        options=[{"label": "Tweets", "value": "tweets"}, {"label": "Followers", "value": "followers"}],
+                        value="tweets",
+                        clearable=False,
+                        style={"width": "200px", "margin-left": "2px"}
+                    )
+                ],
+            ),
+        ],
+        inline=True
+    )
+    return controls
+@lru_cache(maxsize=None)
 def get_controls_rt(number_id, keyword_id):
     controls = dbc.Form(
         [
@@ -286,7 +368,7 @@ def get_controls_rt(number_id, keyword_id):
     )
     return controls
 
-
+@lru_cache(maxsize=None)
 def set_loading(controls, dcc_graph):
     SPINER_STYLE = {
         "margin-top": "25%",
@@ -311,3 +393,9 @@ def set_loading(controls, dcc_graph):
         ])
     ),
     return loading
+
+def get_map_df():
+    con = pymongo.MongoClient("f-l2108-pc09.aulas.etsit.urjc.es", port=21000)
+    col = con["cstrack"]["geomap_full"]
+    info = pd.DataFrame(list(col.find()))
+    return info
