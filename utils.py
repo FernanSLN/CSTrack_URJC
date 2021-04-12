@@ -83,11 +83,12 @@ def filter_by_interest(df, interest):
 
 # Calcular grafo de citas:
 
-def get_cites(filename, keywords=None, stopwords=None, interest=None):
+def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfMentions = df[['Usuario', 'Texto']].copy()
     dfMentions = dfMentions.dropna()
     dfEliminarRTs = dfMentions[dfMentions['Texto'].str.match('RT @')]
@@ -129,11 +130,12 @@ def get_edges(values):
 ## Código para crear gráfica de barras  de Hashtags más usados en los retuits:
 # Seleccionamos las filas solo con RTs y creamos al final una lista que contiene todos los textos
 
-def get_hashtagsRT(filename, keywords=None, stopwords=None, interest=None):
+def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfHashtagsRT = df[['Usuario', 'Texto']].copy()
     dfHashtagsRT = dfHashtagsRT.dropna()
     dfHashtagsRT = dfHashtagsRT[dfHashtagsRT['Texto'].str.match('RT @')]
@@ -163,11 +165,12 @@ def prepare_hashtags(list):
 
 # Código para calcular el grafo de Hashtags dentro de los retuits
 
-def get_hashtagsRT2(filename, keywords=None, stopwords=None, interest=None):
+def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfHashtagsRT = df[['Usuario', 'Texto']]
     idx = dfHashtagsRT['Texto'].str.match('RT @', na=False)
     dfHashtagsRT = dfHashtagsRT[idx]
@@ -194,11 +197,12 @@ def combined_edges(x,y):
 ## Código para calcular grafo de hashtags relacionados fuera de RTs. Este grafo opretende mostrar que
 ##hashtags estan interrlacionados entre si.
 
-def get_hashtagsmain(filename, keywords=None, stopwords=None, interest=None):
+def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfMainHashtags = df[['Usuario', 'Texto']].copy()
     dfMainHashtags = dfMainHashtags.dropna()
     idx = dfMainHashtags[dfMainHashtags['Texto'].str.match('RT @')]
@@ -237,11 +241,12 @@ def prepare_hashtags2(list):
 
 # Creación de grafo hashtags más utilizados (relacionado con usuario):
 
-def get_hashtagsmain2(filename, keywords=None, stopwords=None, interest=None):
+def get_hashtagsmain2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfMainHashtags = df[['Usuario', 'Texto']].copy()
     dfMainHashtags = dfMainHashtags.dropna()
     idx = dfMainHashtags[dfMainHashtags['Texto'].str.match('RT @')]
@@ -436,11 +441,12 @@ def csv_degval(Digraph, filename):
 ## Funciones para obtener los elementos de la two mode:
 # Obtención de los elementos u,v y los edges que los unen para usuario y texto en los retuits:
 
-def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
+def get_uv_edgesRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     edges = []
     df = pd.read_csv(filename, sep=';', error_bad_lines=False)
-    df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfRT = df[['Usuario', 'Texto']].copy()
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
@@ -452,11 +458,12 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
 
 # Obtención de los elemetnos u,v y los edges para los hashtags fuera de los retuits:
 
-def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
+def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
     edges = []
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
-    df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfMain = df[['Usuario', 'Texto']].copy()
     dfMain = dfMain.dropna()
     dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
@@ -486,12 +493,13 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, interest=None, filt
 
 # Función para obtener los componentes de la two mode para hashtags en retuits:
 
-def getuv_htRT(filename, keywords=None, stopwords=None, interest=None, filter_hashtags=None):
+def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
     edges = []
     stop_words = ['CitizenScience', 'citizenScience','citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', '#CitizenScience']
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
-    df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
@@ -554,12 +562,13 @@ def transform_format(val):
         return val
 
 
-def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None, image=None):
+def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
     hashtags =[]
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     df = df[['Usuario', 'Texto']]
     df = df.dropna()
     idx = df[df['Texto'].str.match('RT @')]
@@ -590,12 +599,13 @@ def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, interest=None,
 
 # Wordlcoud for hashtags in the RTs:
 
-def wordcloudRT(filename, keywords=None, stopwords=None, interest=None ):
+def wordcloudRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None ):
     hashtags =[]
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     df = df[['Usuario', 'Texto']]
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
@@ -614,12 +624,13 @@ def wordcloudRT(filename, keywords=None, stopwords=None, interest=None ):
     plt.tight_layout(pad=0)
     plt.show()
 
-def wordcloudRT_logo(filename, keywords=None, stopwords=None, interest=None, image=None):
+def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
     hashtags = []
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     df = df[['Usuario', 'Texto']]
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
