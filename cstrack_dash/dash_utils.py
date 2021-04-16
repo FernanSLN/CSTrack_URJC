@@ -25,7 +25,7 @@ def make_edge(x, y, text):
                       mode='lines')
 
 
-def get_graph_figure(G, i = 0):
+def get_graph_figure(G, i=0):
     print("hello")
     pos = nx.spring_layout(G, iterations=10)
     print("Positions given")
@@ -103,11 +103,13 @@ def get_community_graph(g, community, i=0):
         c.add_edges_from(list_edges)
     return c
 
-@lru_cache(maxsize=None)
-def get_communities(g):
+def get_communities(g, algorithm="louvain"):
     n_g = nk.nxadapter.nx2nk(g)
     idmap = dict((u, id) for (id, u) in zip(g.nodes(), range(g.number_of_nodes())))
-    communities = nk.community.detectCommunities(n_g)
+    if algorithm == "louvain":
+        communities = nk.community.detectCommunities(n_g)
+    else:
+        communities = nk.community.detectCommunities(n_g, algo=nk.community.PLP(n_g))
     list_communities = []
     for i in range(0, communities.numberOfSubsets()):
         list_members = []
@@ -115,6 +117,7 @@ def get_communities(g):
             list_members.append(idmap[member])
         if len(list_members) > 5:
             list_communities.append(list_members)
+    list_communities = [community for community in list_communities if len(community) > 10]
     return list_communities
 
 def get_n_tweets(df):
@@ -290,19 +293,21 @@ def get_twitter_info_df():
     return df
 
 
-def get_controls_community(communities):
+def get_controls_community2(communities):
     dropdown_options = []
+    dropdown_options.append({"label": "all", "value": "all"})
     for i in range(0, len(communities)):
         dropdown_options.append({"label": str(i), "value": i})
+
     controls = dbc.Form(
         [
             dbc.FormGroup(
                 [
                     dbc.Label("Community:"),
                     dcc.Dropdown(
-                        id="com_number",
+                        id="com_number2",
                         options=dropdown_options,
-                        value=0,
+                        value="all",
                         clearable=False,
                         style = {"margin-left": "2px"}
                     )
@@ -313,7 +318,7 @@ def get_controls_community(communities):
                 [
                     dbc.Label("Algorithm:"),
                     dcc.Dropdown(
-                        id="com_algorithm",
+                        id="com_algorithm2",
                         options=[{"label": "Louvain", "value": "louvain"}, {"label": "Label propagation", "value": "propagation"}],
                         value="louvain",
                         clearable=False,
@@ -325,7 +330,7 @@ def get_controls_community(communities):
         inline=True
     )
     return controls
-@lru_cache(maxsize=None)
+
 def get_controls_activity():
     controls = dbc.Form(
         [
@@ -345,7 +350,7 @@ def get_controls_activity():
         inline=True
     )
     return controls
-@lru_cache(maxsize=None)
+
 def get_controls_rt(number_id, keyword_id):
     controls = dbc.Form(
         [
@@ -368,7 +373,7 @@ def get_controls_rt(number_id, keyword_id):
     )
     return controls
 
-@lru_cache(maxsize=None)
+
 def set_loading(controls, dcc_graph):
     SPINER_STYLE = {
         "margin-top": "25%",
