@@ -1047,7 +1047,21 @@ def edge_weight_distribution(Graph):
     counter = Counter(peso)
     frecuencias = list(counter.values())
     pesos = list(counter.keys())
-    plotbarchart(len(pesos), pesos, frecuencias, 'Edge weight distribution', 'weights', 'Frecuency')
+    numberbars = len(pesos)
+    xlabel = 'weights'
+    ylabel = 'Frecuency'
+    title = 'Edge weight distribution'
+    x = pesos
+    y = frecuencias
+    sns.set()
+    plt.figure(figsize=(10, 8))
+    plt.bar(x=x[:numberbars], height=y[:numberbars], color='peachpuff', alpha=1, width=1, linewidth=0)
+    plt.xlabel(xlabel, fontsize=15)
+    plt.ylabel(ylabel, fontsize=15)
+    plt.ticklabel_format(style='sci')
+    plt.title(title, fontsize=20, fontweight='bold')
+    plt.tight_layout()
+    plt.show()
 
 
 
