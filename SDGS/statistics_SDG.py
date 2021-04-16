@@ -41,5 +41,8 @@ print('La mediana(estadística) de impacto es de:', round((df_SDGS['Impacto'].me
 print('La desviación estándar de opinión es de:', round((df_SDGS['Opinion'].std()),2))
 print('La desviación estándar de impacto es de:', round((df_SDGS['Impacto'].std()),2))
 
-utils.impact_opinionRT('/home/fernan/Documents/Lynguo_def2.csv',interest=SDGS_marca, Opinion=True, n=10)
+#utils.impact_opinionRT('/home/fernan/Documents/Lynguo_def2.csv', interest=SDGS_marca, Opinion=True, n=10)
 
+df_statistics = utils.dataframe_statistics('/home/fernan/Documents/Lynguo_def2.csv')
+
+print(df_statistics)

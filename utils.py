@@ -907,10 +907,10 @@ def sentiment_resultsRT(filename, n=None):
     arrobas = []
     for row in retweets:
         reg = re.search('@(\w+)', row[0])
-    if reg:
-        matchRT = reg.group(1)
-        row[0] = matchRT
-        arrobas.append(row)
+        if reg:
+            matchRT = reg.group(1)
+            row[0] = matchRT
+            arrobas.append(row)
 
     df_arrobas = pd.DataFrame(arrobas, columns=['User', 'Values'])
     df_arrobas = df_arrobas.groupby('User', as_index=False).mean()
@@ -921,6 +921,7 @@ def sentiment_resultsRT(filename, n=None):
     df_SRT = df_sentimentRT.sort_values('compound', ascending=False)
     dfSRT = df_SRT.drop_duplicates(subset='Texto', keep='first')
     df_SRT[:50].to_csv('top50 retweets by Sentiment.csv', sep=';', index=False, decimal='.', encoding='utf-8')
+    return df_arrobas
 
 def sentiment_results(filename, n=None):
     df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
@@ -932,10 +933,22 @@ def sentiment_results(filename, n=None):
     subset = df_sentiment[['Usuario', 'compound']]
     subset = subset.groupby('Usuario', as_index=False).mean()
     subset = subset.sort_values('compound', ascending=False)
-    users = subset['Usuario']
-    values = subset['compound']
+    subset = subset.rename(columns={'Usuario': 'User', 'compound': 'Values'})
+    users = subset['User']
+    values = subset['Values']
     plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
+    return subset
 
+# Combinación de ambos subsets y cálculo absoluto de los usuarios con mayor Sentiment calculado en Vader:
+
+def combined_vader(subset1, subset2, n=None):
+    frames = [subset1, subset2]
+    vader_df = pd.concat(frames, axis=0)
+    vader_df = vader_df.groupby('User', as_index=False).mean()
+    vader_df = vader_df.sort_values('Values', ascending=False)
+    users = vader_df['User']
+    values = vader_df['Values']
+    plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
 
 # Adición de pesos a lista de ejes y creación de DIGraph:
 
@@ -973,3 +986,25 @@ def weighted_graph(ejes):
     G = nx.DiGraph()
     G.add_weighted_edges_from(ejes_pesos)
     return G
+
+#DataFrame con el cálculo de la media, mediana y sd de Impacto y Opinión:
+
+def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False,decimal=',', low_memory=False)
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df[['Opinion', 'Impacto']]
+    df = df.dropna()
+    df['Opinion'] = df['Opinion'].replace(',', '.', regex=True).astype(float)
+    mean_opinion = round((df['Opinion'].mean()),2)
+    mean_impact = round((df['Impacto'].mean()),2)
+    median_opinion = round((df['Opinion'].median()),2)
+    median_impact = round((df['Impacto'].median()),2)
+    std_opinion = round((df['Opinion'].std()),2)
+    std_impact = round((df['Impacto'].std()),2)
+    Opinion = [mean_opinion, median_opinion, std_opinion]
+    Impact = [mean_impact, median_impact, std_impact]
+    d = {'Opinion': Opinion, 'Impact': Impact}
+    df_statistics = pd.DataFrame(d, index=['Mean', 'Median', 'Standard deviation'])
+    return df_statistics
