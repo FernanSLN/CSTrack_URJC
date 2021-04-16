@@ -1008,3 +1008,46 @@ def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None
     d = {'Opinion': Opinion, 'Impact': Impact}
     df_statistics = pd.DataFrame(d, index=['Mean', 'Median', 'Standard deviation'])
     return df_statistics
+
+# Creacion del Data Frame conteniendo los parámetros de análisis estructural de un grafo dirigido:
+
+def graph_structural_analysis(Graph):
+    n_nodes = nx.number_of_nodes(Graph)
+    n_edges = nx.number_of_edges(Graph)
+    density = nx.density(Graph)
+    while True:
+        try:
+            avg_path = nx.average_shortest_path_length(Graph, weight='weight')
+            break
+        except nx.NetworkXError:
+            avg_path = 'not weakly connected, average path length not computable'
+            break
+
+    clustering = nx.average_clustering(Graph)
+    transitivity = nx.transitivity(Graph)
+    while True:
+        try:
+            diameter = nx.diameter(Graph)
+            break
+        except nx.NetworkXError:
+            diameter = 'not weakly connected, diameter is infinite'
+            break
+
+    values = [n_nodes, n_edges, density, avg_path, clustering, transitivity, diameter]
+    d = {'Values': values}
+    df_structure = pd.DataFrame(data=d, index=['number of nodes', 'number of edges', 'density', 'average path length',
+                                               'clustering', 'transitivity', 'diameter'])
+    return df_structure
+
+#edge weight distribution:
+
+def edge_weight_distribution(Graph):
+    dict = nx.get_edge_attributes(Graph, 'weight')
+    peso = dict.values()
+    counter = Counter(peso)
+    frecuencias = list(counter.values())
+    pesos = list(counter.keys())
+    plotbarchart(len(pesos), pesos, frecuencias, 'Edge weight distribution', 'weights', 'Frecuency')
+
+
+
