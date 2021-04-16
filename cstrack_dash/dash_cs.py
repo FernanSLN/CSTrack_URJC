@@ -39,15 +39,12 @@ G = dash_utils.get_graph_rt(df)
 communities = dash_utils.get_communities(G)
 com = dash_utils.get_community_graph(G,communities)
 
-
-
-print("AH")
 # link fontawesome to get the chevron icons
 FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
 app.config.suppress_callback_exceptions = True
-server = app.server
+#server = app.server
 print("HELLO")
 submenu_1 = [
     html.Li(
@@ -436,7 +433,7 @@ def render_page_content(pathname):
                 children=html.Div(id="loading-output", children=[
                     dbc.Row(options, justify="center"),
                     dbc.Row(
-                        dbc.Col(dcc.Graph(id='geomap_activity', figure=mu.get_map_stats_by_country(df_map, "tweets")), md=8))
+                        dbc.Col(dcc.Graph(id='geograph', figure=mu.get_map_stats_by_country(df_map)), md=8))
                 ])
             ),
 
@@ -527,21 +524,25 @@ def update_ts_rt_plot(n_submits, n_submits2, hashtag_number, input_key):
 
 
 @app.callback(
-    dash.dependencies.Output('geomap_activity', 'children'),
+    dash.dependencies.Output('geograph', 'figure'),
     [dash.dependencies.Input('activity_type', 'value')])
 def update_com_graph(value):
-    return mu.get_map_stats_by_country(df_map, value)
+    fig = mu.get_map_stats_by_country(df_map, value)
+    return fig
 
 
 @app.callback(
-    dash.dependencies.Output('graph_communities', 'children'),
+    dash.dependencies.Output('graph_communities', 'figure'),
     [dash.dependencies.Input('com_number', 'value')])
 def update_com_graph(value):
+    print(communities)
+    print("Community:", value)
+    print(communities[value])
     com = dash_utils.get_community_graph(G,communities, int(value))
     return dash_utils.get_graph_figure(com, int(value))
 
 
 if __name__ == "__main__":
     print("HI")
-    app.run_server(host="0.0.0.0",port=6123,use_reloader=False, debug=True)
+    app.run_server(host="0.0.0.0",port=6123, debug=False)
 
