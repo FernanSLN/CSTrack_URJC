@@ -143,6 +143,7 @@ def acumulate_retweets(df):
 
 def get_figure(df):
     fig = px.bar(df, x="Hashtags", y="Count", barmode="group")
+    fig.update_xaxes(tickangle=90)
     return fig
 
 
@@ -205,33 +206,43 @@ def get_rt_hashtags(df, k=None, stop=None, n_hashtags=10):
 
 
 def get_all_hashtags(df, k=None, stop=None, n_hashtags=10):
-    hashmain = utils.get_hashtagsmain(df, keywords=k)
+    hashmain = utils.get_hashtagsmain(df, keywords=k, stopwords=["machinelearning", "ai", "#ai", " ai ", " ai", "ai "])
     edges = utils.get_edgesMain(hashmain)
     # Con las stopwords eliminamos el bot:
     sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, stopwords=['airpollution', 'luftdaten',
                                                                                             'fijnstof', 'waalre', 'pm2',
-                                                                                            'pm10'])
+                                                                                            'pm10', 'machinelearning', 'ai', "#ai"])
     df_hashtags = pd.DataFrame(list(zip(sortedHashtagsmain, sortedNumberHashtags)), columns=["Hashtags", "Count"])
+    print(df_hashtags)
     return df_hashtags
 
 
 def get_all_temporalseries(df, k=None, stop=None):
     df = df[['Usuario', 'Texto', 'Fecha']].copy()
+    print("----------- BEFORE ---------")
+    print(df)
     df = df.dropna()
-    df = df[df['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
-    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%d/%m/%Y %H:%M").dt.date
+    print("----------- AFTEEER ---------")
+    print(df)
+    df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
+    print("hre is null")
+    print(df)
+    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
     dias = utils.getDays(df)
+    print("----------Temporal series DF------------------")
+    print(df)
     listHt = utils.get_hashtagsmain(df, keywords=k)
     edges = utils.get_edgesMain(listHt)
-    sortedNH, sortedMH = utils.prepare_hashtagsmain(edges, stopwords=utils.botwords)
+    sortedNH, sortedMH = utils.prepare_hashtagsmain(edges)
     return df, dias, sortedMH
 
 
 def get_rt_temporalseries(df, k=None, stop=None):
     df = df[['Usuario', 'Texto', 'Fecha']].copy()
+
     df = df.dropna()
-    df = df[df['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
-    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%d/%m/%Y %H:%M").dt.date
+    df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
+    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
     dias = utils.getDays(df)
     listHt = utils.get_hashtagsRT(df, keywords=k)
     edges = utils.get_edgesHashRT(listHt)

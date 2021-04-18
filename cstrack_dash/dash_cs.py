@@ -44,11 +44,11 @@ G = dash_utils.get_graph_rt(df)
 communities = dash_utils.get_communities(G)
 com = dash_utils.get_community_graph(G,communities)
 
-graph_communities = []
+"""graph_communities = []
 for i in range(0, len(communities)):
     graph_communities.append(dash_utils.get_community_graph(G, communities, i))
 print("Termina")
-g_communities = cu.get_communities_representative_graph(G, communities)
+g_communities = cu.get_communities_representative_graph(G, communities)"""
 
 
 # link fontawesome to get the chevron icons
@@ -494,7 +494,7 @@ def render_page_content(pathname):
 def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
     if (n_submits + n_submits2) == 0:
         return dash.no_update
-    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=None)
+    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=["machinelearning", " ai "])
     df_rt = dash_utils.get_rt_hashtags(df_rt)
     df_rt = df_rt[:hashtag_number]
     return dash_utils.get_figure(df_rt)
