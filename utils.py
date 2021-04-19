@@ -733,7 +733,7 @@ def Maindf(filename, keywords=None, stopwords=None, interest=None):
 
 # Función para seleccionar Usuario, Texto y Fecha en los RTs:
 
-def dfRT(filename, keywords=None, stopwords=None, interest=None):
+def df_RT(filename, keywords=None, stopwords=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
