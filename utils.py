@@ -280,10 +280,11 @@ def get_edgesMain(values):
 # Hashtags del Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
-def prepare_hashtagsmain(list):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+def prepare_hashtagsmain(list, stopwords=None):
+    citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     lista = [x.lower() for x in list]
-    lista = [word for word in lista if word not in stop_words]
+    lista = [word for word in lista if word not in citsci_words]
+    lista = [word for word in lista if word not in stopwords]
     mainHashtags = np.unique(lista,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
