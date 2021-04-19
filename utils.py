@@ -728,7 +728,7 @@ def Maindf(filename, keywords=None, stopwords=None, interest=None):
     dfMain = dfMain.dropna()
     dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
     dfMain = dfMain.drop(dfEliminarRTs.index)
-    dfMain = dfMain[dfMain['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
+    dfMain = dfMain[dfMain['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9]')]
     return dfMain
 
 # Función para seleccionar Usuario, Texto y Fecha en los RTs:
@@ -739,23 +739,26 @@ def dfRT(filename, keywords=None, stopwords=None, interest=None):
     df = filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
     dfRT = dfRT.dropna()
-    dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
+    dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9]')]
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
     return dfRT
 
 #Función para extraer los días:
 def getDays(df):
-    df = df['Fecha']
-    df = pd.to_datetime(df, format="%d/%m/%Y %H:%M").dt.date
-    days = pd.unique(df)
+    df_Fecha = df['Fecha']
+    df_Fecha = pd.to_datetime(df_Fecha, errors='coerce')
+    df_Fecha = df_Fecha.dropna()
+    df_Fecha = df_Fecha.dt.date
+    days = pd.unique(df_Fecha)
     days.sort()
     return days
 
-# Función para graficar uso de hashtags en el tiempo:
+# Función para graficar uso de hashtags en el tiempo. En df utilizar Maindf o dfRT. Elements la lista de hashtags
+# ordenados sortedMH (main hashtags) o sortedHT (RT):
 
 def plottemporalserie(days, df, elements, title):
-    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%d/%m/%Y %H:%M").dt.date
+    df["Fecha"] = pd.to_datetime(df['Fecha'], errors='coerce').dt.date
     numHashtag = []
     for hashtag in elements[:5]:
         numPerDay = []
