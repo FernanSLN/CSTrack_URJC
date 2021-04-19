@@ -19,9 +19,14 @@ from dash.dependencies import Input, Output, State
 import style
 from generate_utils import filter_by_topic
 import map_utils as mu
+from webweb import Web
+from flask import Flask
+from flask_caching import Cache
+import communities_utils as cu
 
 # data load
 print("DATA LOAD")
+com_algorithm = "louvain"
 df_map = dash_utils.get_map_df()
 df = pd.read_csv("Lynguo_def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
 df_all_h = dash_utils.get_all_hashtags(df)
@@ -39,11 +44,20 @@ G = dash_utils.get_graph_rt(df)
 communities = dash_utils.get_communities(G)
 com = dash_utils.get_community_graph(G,communities)
 
+"""graph_communities = []
+for i in range(0, len(communities)):
+    graph_communities.append(dash_utils.get_community_graph(G, communities, i))
+print("Termina")
+g_communities = cu.get_communities_representative_graph(G, communities)"""
+
+
 # link fontawesome to get the chevron icons
 FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
 app.config.suppress_callback_exceptions = True
+cache = Cache(app.server, config={'CACHE_TYPE': 'simple'})
+
 #server = app.server
 print("HELLO")
 submenu_1 = [
@@ -155,8 +169,8 @@ submenu_5 = [
     ),
     dbc.Collapse(
         [
-            dbc.NavLink("Retweet", href="/graph/communities"),
-            dbc.NavLink("Hashtags", href="/graph/hashtags"),
+            dbc.NavLink("Retweet", href="/graph/retweet_communities"),
+            dbc.NavLink("Hashtag", href="/graph/hashtag_communities"),
         ],
         id="submenu-5-collapse",
     ),
@@ -401,8 +415,13 @@ def render_page_content(pathname):
             ),
         ]),
         return html_plot
-    elif pathname == "/graph/communities":
-        options = dash_utils.get_controls_community(communities)
+    elif pathname == "/graph/retweet_communities":
+        web = Web(nx_G=g_communities)
+        web.display.height = 600
+        web.display.gravity = 0.5
+        web.save("./assets/test.html")
+        srcDoc = open("./assets/test.html").read()
+        options = dash_utils.get_controls_community2(communities)
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -413,8 +432,8 @@ def render_page_content(pathname):
                 children=html.Div(id="loading-output", children=[
                     dbc.Row(options, justify="center"),
                     dbc.Row(
-                        dbc.Col(dcc.Graph(id='graph_communities', figure=dash_utils.get_graph_figure(com)), md=8),
-                        justify="center")
+                        dbc.Col(html.Iframe(id="graph_communities_web", srcDoc=srcDoc, height=800, width=1600), md=8)
+                    )
                 ])
             ),
 
@@ -475,7 +494,7 @@ def render_page_content(pathname):
 def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
     if (n_submits + n_submits2) == 0:
         return dash.no_update
-    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=None)
+    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=["machinelearning", " ai "])
     df_rt = dash_utils.get_rt_hashtags(df_rt)
     df_rt = df_rt[:hashtag_number]
     return dash_utils.get_figure(df_rt)
@@ -533,14 +552,45 @@ def update_com_graph(value):
 
 @app.callback(
     dash.dependencies.Output('graph_communities', 'figure'),
-    [dash.dependencies.Input('com_number', 'value')])
-def update_com_graph(value):
-    print(communities)
-    print("Community:", value)
-    print(communities[value])
+    [dash.dependencies.Input('com_number', 'value'),
+     dash.dependencies.Input('com_algorithm', 'value')])
+def update_com_graph(value, algorithm):
+    global com_algorithm
+    global communities
+    print(value)
+    print(algorithm)
+    if com_algorithm != algorithm:
+        com_algorithm = algorithm
+        communities = dash_utils.get_communities(G, algorithm)
     com = dash_utils.get_community_graph(G,communities, int(value))
+    web = Web(nx_G=com)
+    web.display.height = 600
+    web.save("./assets/test.html")
+    srcDoc = open("./assets/test.html").read()
     return dash_utils.get_graph_figure(com, int(value))
 
+@app.callback(
+    dash.dependencies.Output('graph_communities_web', 'srcDoc'),
+    [dash.dependencies.Input('com_number2', 'value'),
+     dash.dependencies.Input('com_algorithm2', 'value')])
+def update_com_graph(value, algorithm):
+    global com_algorithm
+    global communities
+    print(value)
+    print(algorithm)
+    if value == "all":
+        com = g_communities
+    else:
+        if com_algorithm != algorithm:
+            com_algorithm = algorithm
+            communities = dash_utils.get_communities(G, algorithm)
+        com = dash_utils.get_community_graph(G,communities, int(value))
+    web = Web(nx_G=com)
+    web.display.height = 600
+    web.display.gravity = 0.5
+    web.save("./assets/test.html")
+    srcDoc = open("./assets/test.html").read()
+    return srcDoc
 
 if __name__ == "__main__":
     print("HI")

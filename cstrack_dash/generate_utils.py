@@ -132,13 +132,21 @@ def get_edgesHashRT(values):
     return edges
 
 # Organizamos los hashtags en orden de más usados a menos usados y creamos una lista con la cantidad de veces que aparecen
-def prepare_hashtags(list):
+def prepare_hashtags(list_h):
+    print("This is the list")
+    print(list_h)
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    list = [x.lower() for x in list]
-    list = [word for word in list if word not in stop_words]
-    list = np.unique(list, return_counts=True)
-    list = sorted((zip(list[1], list[0])), reverse=True)
-    sortedNumberHashtags, sortedHashtagsRT = zip(*list)
+    list_x = [x.lower() for x in list_h]
+    list_x = [word for word in list_x if word not in stop_words]
+    list_x = np.unique(list_x, return_counts=True)
+    list_x = sorted((zip(list_x[1], list_x[0])), reverse=True)
+    un = []
+    unzipped = zip(*list_x)
+    for v1 in unzipped:
+        un.append(list(v1))
+    """print("THIS IS UN")
+    print(un)"""
+    sortedNumberHashtags, sortedHashtagsRT = un[0], un[1]
     return sortedNumberHashtags, sortedHashtagsRT
 
 
@@ -253,14 +261,25 @@ def get_edgesMain(values):
 # Hashtags del Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
-def prepare_hashtagsmain(list, stopwords=None):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    list = [x.lower() for x in list]
-    list = [word for word in list if word not in stop_words]
-    list = [word for word in list if word not in stopwords]
-    mainHashtags = np.unique(list,return_counts=True)
+def prepare_hashtagsmain(list_h, stopwords=[]):
+    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'machinelearning', 'ml', 'ai', 'deeplearning' ] + stopwords
+    list_x = [x.lower() for x in list_h]
+    list_x = [word for word in list_x if word.strip() not in stop_words]
+    f = open("hashtags", "w")
+
+    print("LIST X ")
+    print(list_x)
+    mainHashtags = np.unique(list_x,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
-    sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
+    un = []
+    unzipped = zip(*mainHashtags)
+    for v1 in unzipped:
+        un.append(list(v1))
+    """print("THIS IS UN")
+    print(un)"""
+    sortedNumberHashtags, sortedMainHashtags = un[0], un[1]
+    print(sortedMainHashtags)
+    f.write(str(sortedMainHashtags))
     return sortedNumberHashtags,sortedMainHashtags
 
 
