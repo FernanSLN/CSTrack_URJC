@@ -721,26 +721,31 @@ def most_commonwc(filename):
 # Gráficos temporales
 # Función para seleccionar Usuario,Texto y Fecha en el df y eliminar RTs:
 
-def Maindf(filename, keywords=None, stopwords=None, interest=None):
+def Maindf(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfMain= df[['Usuario', 'Texto', 'Fecha']].copy()
     dfMain = dfMain.dropna()
     dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
     dfMain = dfMain.drop(dfEliminarRTs.index)
-    dfMain = dfMain[dfMain['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9]')]
+    dfMain['Fecha'] = pd.to_datetime(dfMain['Fecha'], errors='coerce')
+    dfMain = dfMain.dropna()
+    dfMain['Fecha'] = dfMain['Fecha'].dt.date
     return dfMain
 
 # Función para seleccionar Usuario, Texto y Fecha en los RTs:
 
-def df_RT(filename, keywords=None, stopwords=None, interest=None):
+def df_RT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
     dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
+    dfRT['Fecha'] = pd.to_datetime(dfRT['Fecha'], errors='coerce')
     dfRT = dfRT.dropna()
-    dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9]')]
+    dfRT['Fecha'] = dfRT['Fecha'].dt.date
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
     return dfRT
@@ -759,7 +764,6 @@ def getDays(df):
 # ordenados sortedMH (main hashtags) o sortedHT (RT):
 
 def plottemporalserie(days, df, elements, title):
-    df["Fecha"] = pd.to_datetime(df['Fecha'], errors='coerce').dt.date
     numHashtag = []
     for hashtag in elements[:5]:
         numPerDay = []
