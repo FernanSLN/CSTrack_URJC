@@ -747,9 +747,9 @@ def main_or_RT_days(filename, RT=None):
 # ordenados sortedMH (main hashtags) o sortedHT (RT) obtenidos con las funciones listHT/listHRT- get_edgesMain/
 # get_EdgesHashRT- preparehashtagsmain/preparehashtags:
 
-def plottemporalserie(days, df, elements, title):
+def plottemporalserie(days, df, elements, title, n=None):
     numHashtag = []
-    for hashtag in elements[:5]:
+    for hashtag in elements[:n]:
         numPerDay = []
         for day in days:
             dfOneDay = df[df['Fecha'] == day]
@@ -760,11 +760,9 @@ def plottemporalserie(days, df, elements, title):
     sns.reset_orig()
     fig = plt.figure(figsize=(9, 6))
 
-    colours = ["red", "blue", "green", "orange", "magenta"]
-
     i = 0
-    for hashtag in elements[:5]:
-        plt.plot_date(days, numHashtag[i], colours[i], label=hashtag)
+    for hashtag in elements[:n]:
+        plt.plot_date(days, numHashtag[i], linestyle='solid', markersize=0, label=hashtag)
         i += 1
 
         # Se fija el titulo y etiquetas
