@@ -719,6 +719,29 @@ def most_commonwc(filename):
     plt.show()
 
 # Gráficos temporales
+
+def main_or_RT_days(filename, RT=None):
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = df[['Fecha', 'Usuario', 'Texto']]
+    df = df.dropna()
+    if RT == True:
+        idx = df['Texto'].str.contains('RT @', na=False)
+        subset = df[idx]
+    else:
+        dfEliminarRTs = df[df['Texto'].str.match('RT @')]
+        subset = df.drop(dfEliminarRTs.index)
+
+    subset['Fecha'] = pd.to_datetime(subset['Fecha'], errors='coerce')
+    subset = subset.dropna()
+    subset['Fecha'] = subset['Fecha'].dt.date
+
+    # Obtenemos los días en el subset:
+    df_Fecha = subset['Fecha']
+    days = pd.unique(df_Fecha)
+    days.sort()
+
+    return subset, days
+
 # Función para seleccionar Usuario,Texto y Fecha en el df y eliminar RTs:
 
 def Maindf(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
