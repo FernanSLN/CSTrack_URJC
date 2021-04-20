@@ -775,7 +775,35 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
     fig.autofmt_xdate()
     plt.show()
 
+# plot temporal series de un hashtag a nuestra elección (variable name), el resto igual:
 
+def one_hastag_temporalseries(df, elements, days, name, title):
+    numHashtag = []
+    for i in elements:
+        if i == name:
+            for day in days:
+                numPerDay = []
+                dfOneDay = df[df['Fecha'] == day]
+                count = dfOneDay['Texto'].str.contains(i, case=False).sum()
+                numPerDay.append(count)
+                numHashtag.append(numPerDay)
+            sns.reset_orig()
+            fig = plt.figure(figsize=(9, 6))
+
+            plt.plot_date(days, numHashtag, linestyle='solid', color='mediumseagreen', markersize=0, label=name)
+
+            # Se fija el titulo y etiquetas
+            plt.title(title, fontsize=20, fontweight='bold')
+            plt.xlabel("Fecha", fontsize=15)
+            plt.ylabel("Número de veces", fontsize=15)
+            plt.xticks(rotation=45)
+            plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
+
+            fig.autofmt_xdate()
+            plt.show()
+
+    else:
+        print(name + 'not in list')
 start_time = time.time()
 
 # Función para obtener los 50 tweets con mayor Impacto/Opinión y los usuarios con mayor impacto/opinión:
