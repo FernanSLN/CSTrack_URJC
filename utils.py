@@ -742,49 +742,10 @@ def main_or_RT_days(filename, RT=None):
 
     return subset, days
 
-# Función para seleccionar Usuario,Texto y Fecha en el df y eliminar RTs:
-
-def Maindf(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
-    df = filter_by_interest(df, interest)
-    df = filter_by_topic(df, keywords, stopwords)
-    df = filter_by_subtopic(df, keywords2, stopwords2)
-    dfMain= df[['Usuario', 'Texto', 'Fecha']].copy()
-    dfMain = dfMain.dropna()
-    dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
-    dfMain = dfMain.drop(dfEliminarRTs.index)
-    dfMain['Fecha'] = pd.to_datetime(dfMain['Fecha'], errors='coerce')
-    dfMain = dfMain.dropna()
-    dfMain['Fecha'] = dfMain['Fecha'].dt.date
-    return dfMain
-
-# Función para seleccionar Usuario, Texto y Fecha en los RTs:
-
-def df_RT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = filter_by_interest(df, interest)
-    df = filter_by_topic(df, keywords, stopwords)
-    df = filter_by_subtopic(df, keywords2, stopwords2)
-    dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
-    dfRT['Fecha'] = pd.to_datetime(dfRT['Fecha'], errors='coerce')
-    dfRT = dfRT.dropna()
-    dfRT['Fecha'] = dfRT['Fecha'].dt.date
-    idx = dfRT['Texto'].str.contains('RT @', na=False)
-    dfRT = dfRT[idx]
-    return dfRT
-
-#Función para extraer los días:
-def getDays(df):
-    df_Fecha = df['Fecha']
-    df_Fecha = pd.to_datetime(df_Fecha, errors='coerce')
-    df_Fecha = df_Fecha.dropna()
-    df_Fecha = df_Fecha.dt.date
-    days = pd.unique(df_Fecha)
-    days.sort()
-    return days
-
-# Función para graficar uso de hashtags en el tiempo. En df utilizar Maindf o dfRT. Elements la lista de hashtags
-# ordenados sortedMH (main hashtags) o sortedHT (RT):
+# Función para graficar uso de hashtags en el tiempo. En df utilizar Maindf o dfRT obtenidos con main_or_RT_days.
+# Days emplear los obtenidos en la función anterior también. Elements la lista de hashtags
+# ordenados sortedMH (main hashtags) o sortedHT (RT) obtenidos con las funciones listHT/listHRT- get_edgesMain/
+# get_EdgesHashRT- preparehashtagsmain/preparehashtags:
 
 def plottemporalserie(days, df, elements, title):
     numHashtag = []
@@ -982,8 +943,16 @@ def combined_vader(subset1, subset2, n=None):
     plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
 
 # Adición de pesos a lista de ejes y creación de DIGraph:
+# Primera función añade peso como caracteristica en dict de los ejes:
 
-def weighted_graph(ejes):
+def make_weightedDIGraph(ejes):
+    edges_tupla = [tuple(x) for x in ejes]
+    G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tupla).items())
+    return G
+
+# Segunda función añade peso como tercer elemento de la tupla (nodo, nodo, peso):
+
+def weighted_DiGraph(ejes):
     for lista in ejes:
         lista.append(1)
 
