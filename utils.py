@@ -280,10 +280,11 @@ def get_edgesMain(values):
 # Hashtags del Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
-def prepare_hashtagsmain(list):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+def prepare_hashtagsmain(list, stopwords=None):
+    citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     lista = [x.lower() for x in list]
-    lista = [word for word in lista if word not in stop_words]
+    lista = [word for word in lista if word not in citsci_words]
+    lista = [word for word in lista if word not in stopwords]
     mainHashtags = np.unique(lista,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
@@ -718,46 +719,37 @@ def most_commonwc(filename):
     plt.show()
 
 # Gráficos temporales
-# Función para seleccionar Usuario,Texto y Fecha en el df y eliminar RTs:
 
-def Maindf(filename, keywords=None, stopwords=None, interest=None):
+def main_or_RT_days(filename, RT=None):
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
-    df = filter_by_interest(df, interest)
-    df = filter_by_topic(df, keywords, stopwords)
-    dfMain= df[['Usuario', 'Texto', 'Fecha']].copy()
-    dfMain = dfMain.dropna()
-    dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
-    dfMain = dfMain.drop(dfEliminarRTs.index)
-    dfMain = dfMain[dfMain['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
-    return dfMain
+    df = df[['Fecha', 'Usuario', 'Texto']]
+    df = df.dropna()
+    if RT == True:
+        idx = df['Texto'].str.contains('RT @', na=False)
+        subset = df[idx]
+    else:
+        dfEliminarRTs = df[df['Texto'].str.match('RT @')]
+        subset = df.drop(dfEliminarRTs.index)
 
-# Función para seleccionar Usuario, Texto y Fecha en los RTs:
+    subset['Fecha'] = pd.to_datetime(subset['Fecha'], errors='coerce')
+    subset = subset.dropna()
+    subset['Fecha'] = subset['Fecha'].dt.date
 
-def dfRT(filename, keywords=None, stopwords=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = filter_by_interest(df, interest)
-    df = filter_by_topic(df, keywords, stopwords)
-    dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()
-    dfRT = dfRT.dropna()
-    dfRT = dfRT[dfRT['Fecha'].str.match('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]\s[0-9]')]
-    idx = dfRT['Texto'].str.contains('RT @', na=False)
-    dfRT = dfRT[idx]
-    return dfRT
-
-#Función para extraer los días:
-def getDays(df):
-    df = df['Fecha']
-    df = pd.to_datetime(df, format="%d/%m/%Y %H:%M").dt.date
-    days = pd.unique(df)
+    # Obtenemos los días en el subset:
+    df_Fecha = subset['Fecha']
+    days = pd.unique(df_Fecha)
     days.sort()
-    return days
 
-# Función para graficar uso de hashtags en el tiempo:
+    return subset, days
 
-def plottemporalserie(days, df, elements, title):
-    df["Fecha"] = pd.to_datetime(df['Fecha'], format="%d/%m/%Y %H:%M").dt.date
+# Función para graficar uso de hashtags en el tiempo. En df utilizar Maindf o dfRT obtenidos con main_or_RT_days.
+# Days emplear los obtenidos en la función anterior también. Elements la lista de hashtags
+# ordenados sortedMH (main hashtags) o sortedHT (RT) obtenidos con las funciones listHT/listHRT- get_edgesMain/
+# get_EdgesHashRT- preparehashtagsmain/preparehashtags:
+
+def plottemporalserie(days, df, elements, title, x=None, y=None):
     numHashtag = []
-    for hashtag in elements[:5]:
+    for hashtag in elements[x:y]:
         numPerDay = []
         for day in days:
             dfOneDay = df[df['Fecha'] == day]
@@ -768,11 +760,9 @@ def plottemporalserie(days, df, elements, title):
     sns.reset_orig()
     fig = plt.figure(figsize=(9, 6))
 
-    colours = ["red", "blue", "green", "orange", "magenta"]
-
     i = 0
-    for hashtag in elements[:5]:
-        plt.plot_date(days, numHashtag[i], colours[i], label=hashtag)
+    for hashtag in elements[x:y]:
+        plt.plot_date(days, numHashtag[i], linestyle='solid', markersize=0, label=hashtag)
         i += 1
 
         # Se fija el titulo y etiquetas
@@ -785,7 +775,35 @@ def plottemporalserie(days, df, elements, title):
     fig.autofmt_xdate()
     plt.show()
 
+# plot temporal series de un hashtag a nuestra elección (variable name), el resto igual:
 
+def one_hastag_temporalseries(df, elements, days, name, title):
+    numHashtag = []
+    for i in elements:
+        if i == name:
+            for day in days:
+                numPerDay = []
+                dfOneDay = df[df['Fecha'] == day]
+                count = dfOneDay['Texto'].str.contains(i, case=False).sum()
+                numPerDay.append(count)
+                numHashtag.append(numPerDay)
+            sns.reset_orig()
+            fig = plt.figure(figsize=(9, 6))
+
+            plt.plot_date(days, numHashtag, linestyle='solid', color='mediumseagreen', markersize=0, label=name)
+
+            # Se fija el titulo y etiquetas
+            plt.title(title, fontsize=20, fontweight='bold')
+            plt.xlabel("Fecha", fontsize=15)
+            plt.ylabel("Número de veces", fontsize=15)
+            plt.xticks(rotation=45)
+            plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
+
+            fig.autofmt_xdate()
+            plt.show()
+
+    else:
+        print(name + 'not in list')
 start_time = time.time()
 
 # Función para obtener los 50 tweets con mayor Impacto/Opinión y los usuarios con mayor impacto/opinión:
@@ -951,8 +969,16 @@ def combined_vader(subset1, subset2, n=None):
     plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
 
 # Adición de pesos a lista de ejes y creación de DIGraph:
+# Primera función añade peso como caracteristica en dict de los ejes:
 
-def weighted_graph(ejes):
+def make_weightedDIGraph(ejes):
+    edges_tupla = [tuple(x) for x in ejes]
+    G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tupla).items())
+    return G
+
+# Segunda función añade peso como tercer elemento de la tupla (nodo, nodo, peso):
+
+def weighted_DiGraph(ejes):
     for lista in ejes:
         lista.append(1)
 
