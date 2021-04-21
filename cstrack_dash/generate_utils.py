@@ -13,6 +13,7 @@ import nltk
 from nltk.corpus import stopwords
 import matplotlib.dates as mdates
 import time
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 # stop_words para emplear en filtrados:
 
@@ -265,10 +266,7 @@ def prepare_hashtagsmain(list_h, stopwords=[]):
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'machinelearning', 'ml', 'ai', 'deeplearning' ] + stopwords
     list_x = [x.lower() for x in list_h]
     list_x = [word for word in list_x if word.strip() not in stop_words]
-    f = open("hashtags", "w")
 
-    print("LIST X ")
-    print(list_x)
     mainHashtags = np.unique(list_x,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     un = []
@@ -278,8 +276,6 @@ def prepare_hashtagsmain(list_h, stopwords=[]):
     """print("THIS IS UN")
     print(un)"""
     sortedNumberHashtags, sortedMainHashtags = un[0], un[1]
-    print(sortedMainHashtags)
-    f.write(str(sortedMainHashtags))
     return sortedNumberHashtags,sortedMainHashtags
 
 
@@ -786,5 +782,23 @@ def plottemporalserie(days, df, elements, title):
     plt.show()
 
 
+def sentiment_analyser(df_entry,keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    analyser = SentimentIntensityAnalyzer()
+    df = filter_by_interest(df_entry, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = df[['Texto', 'Usuario']]
+    df = df.dropna()
+    Users = df['Usuario']
+    Texto = df['Texto']
+    sentences = Texto
+    list_of_dicts = []
+    for sentence in sentences:
+        adict = analyser.polarity_scores(sentence)
+        print(adict)
+        list_of_dicts.append(adict)
+    df_sentiment = pd.DataFrame(list_of_dicts)
+    df_sentiment['Usuario'] = Users
+    df_sentiment['Texto'] = Texto
+    return df_sentiment
 start_time = time.time()
 
