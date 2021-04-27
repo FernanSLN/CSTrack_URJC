@@ -147,7 +147,7 @@ def get_figure(df):
     return fig
 
 
-def get_temporal_figure(df, n_hashtags=2):
+def get_temporal_figure(df, n_hashtags=5):
     fig = px.line(df, x='date', y=df.columns[:n_hashtags])
     fig.update_layout(xaxis_tick0=df['date'][0], xaxis_dtick=86400000 * 15)
     return fig
@@ -182,7 +182,7 @@ def get_cstrack_graph(df, type, title):
 
 def get_df_ts(df, days, elements):
     numHashtag = []
-    for hashtag in elements[:2]:
+    for hashtag in elements[:100]:
         numPerDay = []
         for day in days:
             dfOneDay = df[df['Fecha'] == day]
@@ -213,24 +213,19 @@ def get_all_hashtags(df, k=None, stop=None, n_hashtags=10):
                                                                                             'fijnstof', 'waalre', 'pm2',
                                                                                             'pm10', 'machinelearning', 'ai', "#ai"])
     df_hashtags = pd.DataFrame(list(zip(sortedHashtagsmain, sortedNumberHashtags)), columns=["Hashtags", "Count"])
-    print(df_hashtags)
     return df_hashtags
 
 
 def get_all_temporalseries(df, k=None, stop=None):
     df = df[['Usuario', 'Texto', 'Fecha']].copy()
-    print("----------- BEFORE ---------")
-    print(df)
+
     df = df.dropna()
-    print("----------- AFTEEER ---------")
-    print(df)
+
     df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
-    print("hre is null")
-    print(df)
+
     df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
     dias = utils.getDays(df)
-    print("----------Temporal series DF------------------")
-    print(df)
+
     listHt = utils.get_hashtagsmain(df, keywords=k)
     edges = utils.get_edgesMain(listHt)
     sortedNH, sortedMH = utils.prepare_hashtagsmain(edges)
@@ -294,7 +289,7 @@ def get_degrees(df):
 
 
 def get_twitter_info_df():
-    db = pymongo.MongoClient(host="127.0.0.1", port=27017)
+    db = pymongo.MongoClient(host="f-l2108-pc09.aulas.etsit.urjc.es", port=21000)
     twitter_data = db["cstrack"]["cstrack_stats"]
     twitter_dict_list = list(twitter_data.find())
     df = pd.DataFrame(twitter_dict_list)
@@ -378,6 +373,36 @@ def get_controls_rt(number_id, keyword_id):
                     dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
                 ],
                 className="mr-3"
+            ),
+        ],
+        inline=True
+    )
+    return controls
+
+def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
+    options = []
+    for c in df_ts.columns[:-1]:
+        options.append({"label": c, "value": c})
+    controls = dbc.Form(
+        [
+            dbc.FormGroup(
+                [
+                    dbc.Label("Number:"),
+                    dbc.Input(id=number_id, n_submit=0, type="number", value=10, debounce=True, size=3),
+                ],
+            ),
+            dbc.FormGroup(
+                [
+                    dbc.Label("Keywords:"),
+                    dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True, size=10),
+                ],
+            ),
+
+            dbc.FormGroup(
+                [
+                    dbc.Label("Hashtags:"),
+                    dcc.Dropdown(id=dc_id,  options=options, multi=True, style={"width": "200px"}),
+                ],
             ),
         ],
         inline=True
