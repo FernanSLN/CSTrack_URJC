@@ -971,7 +971,7 @@ def combined_vader(subset1, subset2, n=None):
 # Adición de pesos a lista de ejes y creación de DIGraph:
 # Primera función añade peso como caracteristica en dict de los ejes:
 
-def make_weightedDIGraph(ejes):
+def make_weightedDiGraph(ejes):
     edges_tupla = [tuple(x) for x in ejes]
     G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tupla).items())
     return G
