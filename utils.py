@@ -4,6 +4,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import networkx as nx
+from networkx.algorithms import bipartite
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 from os import path
 from PIL import Image
@@ -442,9 +443,9 @@ def csv_degval(Digraph, filename):
 ## Funciones para obtener los elementos de la two mode:
 # Obtención de los elementos u,v y los edges que los unen para usuario y texto en los retuits:
 
-def get_uv_edgesRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     edges = []
-    df = pd.read_csv(filename, sep=';', error_bad_lines=False)
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -455,7 +456,28 @@ def get_uv_edgesRT(filename, keywords=None, stopwords=None, keywords2=None, stop
     u = list(subset['Usuario'])
     v = list(subset['Texto'])
     edges = [tuple(x) for x in subset.to_numpy()]
-    return edges, u, v
+    G = nx.Graph()
+    G.add_nodes_from(set(u), bipartite=0)
+    G.add_nodes_from(set(v), bipartite=1)
+    G.add_edges_from(edges)
+    print(len(G.nodes))
+
+    if len(G.nodes) >= 2000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    counter = Counter(list((nx.core_number(G).values())))
+    print(counter)
+    pos = {}
+
+    pos.update((node, (1, index)) for index, node in enumerate(set(u)))
+    pos.update((node, (2, index)) for index, node in enumerate(set(v)))
+
+    return G
+
+
+
 
 # Obtención de los elemetnos u,v y los edges para los hashtags fuera de los retuits:
 
