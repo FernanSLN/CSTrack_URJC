@@ -51,7 +51,7 @@ df_sentiment = gu.sentiment_analyser((df))
 df_deg.to_csv("dashdeg.csv")
 
 df_cstrack = dash_utils.get_twitter_info_df()
-"""G = dash_utils.get_graph_rt(df)
+G = dash_utils.get_graph_rt(df)
 communities = dash_utils.get_communities(G)
 com = dash_utils.get_community_graph(G,communities)
 
@@ -59,7 +59,7 @@ graph_communities = []
 for i in range(0, len(communities)):
     graph_communities.append(dash_utils.get_community_graph(G, communities, i))
 print("Termina")
-g_communities = cu.get_communities_representative_graph(G, communities)"""
+g_communities = cu.get_communities_representative_graph(G, communities)
 kcore_g =dash_utils.kcore_graph(df=df)
 
 
