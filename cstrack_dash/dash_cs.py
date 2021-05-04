@@ -31,13 +31,14 @@ from webweb import Web
 from flask import Flask
 from flask_caching import Cache
 import communities_utils as cu
+import hashlib
 
 # data load
 #kcor algorithm
 print("DATA LOAD")
 com_algorithm = "louvain"
 df_map = dash_utils.get_map_df()
-df = pd.read_csv("Lynguo_def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
+df = pd.read_csv("Lynguo_Def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
 df_all_h = dash_utils.get_all_hashtags(df)
 df_rt_h = dash_utils.get_rt_hashtags(df)
 df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df)
@@ -47,10 +48,10 @@ df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
 wc_main = dash_utils.wordcloudmain(df)
 df_deg = dash_utils.get_degrees(df)
 df_sentiment = gu.sentiment_analyser((df))
-#df_deg.to_csv("dashdeg.csv")
+df_deg.to_csv("dashdeg.csv")
 
 df_cstrack = dash_utils.get_twitter_info_df()
-G = dash_utils.get_graph_rt(df)
+"""G = dash_utils.get_graph_rt(df)
 communities = dash_utils.get_communities(G)
 com = dash_utils.get_community_graph(G,communities)
 
@@ -58,7 +59,8 @@ graph_communities = []
 for i in range(0, len(communities)):
     graph_communities.append(dash_utils.get_community_graph(G, communities, i))
 print("Termina")
-g_communities = cu.get_communities_representative_graph(G, communities)
+g_communities = cu.get_communities_representative_graph(G, communities)"""
+kcore_g =dash_utils.kcore_graph(df=df)
 
 
 # link fontawesome to get the chevron icons
@@ -167,7 +169,7 @@ submenu_5 = [
     html.Li(
         dbc.Row(
             [
-                dbc.Col("Communities"),
+                dbc.Col("Networks"),
                 dbc.Col(
                     html.I(className="fas fa-chevron-right mr-3"), width="auto"
                 ),
@@ -179,8 +181,8 @@ submenu_5 = [
     ),
     dbc.Collapse(
         [
-            dbc.NavLink("Retweet", href="/graph/retweet_communities"),
-            dbc.NavLink("Hashtag", href="/graph/hashtag_communities"),
+            dbc.NavLink("Retweets", href="/graph/retweets"),
+            dbc.NavLink("RT Communities", href="/graph/retweet_communities"),
         ],
         id="submenu-5-collapse",
     ),
@@ -258,7 +260,6 @@ for i in range(1, 7):
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
     if pathname == "/":
-        controls = dash_utils.get_controls_rt("input-rt-cstrack", "hashtag-rt-cstrack")
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -267,7 +268,6 @@ def render_page_content(pathname):
                 id="loading-1",
                 type="default",
                 children=html.Div(id="loading-output", children=[
-                    dbc.Row(controls, justify="center"),
                     dbc.Row(
                         dbc.Col(dcc.Graph(id='graph_retweets', figure=dash_utils.get_cstrack_graph(df_cstrack, "Retweets", "Retweets received")), md=8),
                         justify="center"),
@@ -345,7 +345,6 @@ def render_page_content(pathname):
         return html_plot
 
     elif pathname == "/wordcloud":
-        controls = dash_utils.get_controls_rt("input-key-ws", "hashtag-number-ts-all")
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -354,7 +353,6 @@ def render_page_content(pathname):
                 id="loading-1",
                 type="default",
                 children=html.Div(id="loading-output", children=[
-                    dbc.Row(controls, justify="center"),
                     dbc.Row(dbc.Col(html.Img(src=app.get_asset_url('wc2.png'))), justify="center"),
                 ])
             ),
@@ -382,6 +380,10 @@ def render_page_content(pathname):
 
     elif pathname == "/tables/retweets":
         print("PATH 2")
+        list_names = [hashlib.md5(str(name).encode()).hexdigest() for name in df_deg["Name"].tolist()]
+        new_deg = df_deg.copy()
+        del new_deg["Name"]
+        new_deg.insert(0, "Name", list_names, True)
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -398,9 +400,60 @@ def render_page_content(pathname):
                                 {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
                                 if i == "iso_alpha3" or i == "year" or i == "id"
                                 else {"name": i, "id": i, "deletable": True, "selectable": True}
-                                for i in df_deg.columns
+                                for i in new_deg.columns
                             ],
-                            data=df_deg.to_dict('records'),  # the contents of the table
+                            style_cell={"minWidth": "80px", "maxWidth": "200px", 'overflow': "hidden",
+                                        "textOverflow": "ellipsis"},
+                            data=new_deg.to_dict('records'),  # the contents of the table
+                            editable=True,  # allow editing of data inside all cells
+                            filter_action="native",  # allow filtering of data by user ('native') or not ('none')
+                            sort_action="native",  # enables data to be sorted per-column by user or not ('none')
+                            sort_mode="single",  # sort across 'multi' or 'single' columns
+                            column_selectable="multi",  # allow users to select 'multi' or 'single' columns
+                            row_selectable="multi",  # allow users to select 'multi' or 'single' rows
+                            row_deletable=True,  # choose if user can delete a row (True) or not (False)
+                            selected_columns=[],  # ids of columns that user selects
+                            selected_rows=[],  # indices of rows that user selects
+                            page_action="native",  # all data is passed to the table up-front or not ('none')
+                            page_current=0,  # page number that user is on
+                            page_size=10,  # number of rows visible per page
+                            style_data={  # overflow cells' content into multiple lines
+                                'whiteSpace': 'normal',
+                                'height': 'auto'
+                            },
+                            export_format="csv"
+                        )
+                        ,md=8), justify="center"),
+                ])
+            ),
+        ]),
+        return html_plot
+    elif pathname == "/tables/sentiment":
+        print(df_sentiment.columns)
+        list_names = [hashlib.md5(str(name).encode()).hexdigest() for name in df_sentiment["Usuario"].tolist()]
+        df_new_sent = df_sentiment.copy()
+        del df_new_sent["Usuario"]
+        df_new_sent.insert(0, "Name", list_names, True)
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(dbc.Col(
+
+                        dash_table.DataTable(
+                            id='datatable-sentiment',
+                            style_cell={"minWidth": "80px", "maxWidth": "200px", 'overflow': "hidden", "textOverflow": "ellipsis"},
+                            columns=[
+                                {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
+                                if i == "iso_alpha3" or i == "year" or i == "id"
+                                else {"name": i, "id": i, "deletable": True, "selectable": True}
+                                for i in df_new_sent.columns
+                            ],
+                            data=df_new_sent.to_dict('records'),  # the contents of the table
                             editable=True,  # allow editing of data inside all cells
                             filter_action="native",  # allow filtering of data by user ('native') or not ('none')
                             sort_action="native",  # enables data to be sorted per-column by user or not ('none')
@@ -423,7 +476,14 @@ def render_page_content(pathname):
             ),
         ]),
         return html_plot
-    elif pathname == "/tables/sentiment":
+    elif pathname == "/graph/retweets":
+        print("PATH GRAPH RT")
+        web = Web(nx_G=kcore_g)
+        web.display.height = 600
+        web.display.gravity = 0.5
+        web.save("./assets/test.html")
+        srcDoc = open("./assets/test.html").read()
+        controls = dash_utils.get_controls_rt_g(keyword_id="input-keyword-graph-rt")
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -432,39 +492,14 @@ def render_page_content(pathname):
                 id="loading-1",
                 type="default",
                 children=html.Div(id="loading-output", children=[
-                    dbc.Row(dbc.Col(
-
-                        dash_table.DataTable(
-                            id='datatable-sentiment',
-                            style_cell={"minWidth": "80px", "maxWidth": "500px"},
-                            columns=[
-                                {"name": i, "id": i, "deletable": True, "selectable": True, "hideable": True}
-                                if i == "iso_alpha3" or i == "year" or i == "id"
-                                else {"name": i, "id": i, "deletable": True, "selectable": True}
-                                for i in df_sentiment.columns
-                            ],
-                            data=df_sentiment.to_dict('records'),  # the contents of the table
-                            editable=True,  # allow editing of data inside all cells
-                            filter_action="native",  # allow filtering of data by user ('native') or not ('none')
-                            sort_action="native",  # enables data to be sorted per-column by user or not ('none')
-                            sort_mode="single",  # sort across 'multi' or 'single' columns
-                            column_selectable="multi",  # allow users to select 'multi' or 'single' columns
-                            row_selectable="multi",  # allow users to select 'multi' or 'single' rows
-                            row_deletable=True,  # choose if user can delete a row (True) or not (False)
-                            selected_columns=[],  # ids of columns that user selects
-                            selected_rows=[],  # indices of rows that user selects
-                            page_action="native",  # all data is passed to the table up-front or not ('none')
-                            page_current=0,  # page number that user is on
-                            page_size=10,  # number of rows visible per page
-                            style_data={  # overflow cells' content into multiple lines
-                                'whiteSpace': 'normal',
-                                'height': 'auto'
-                            }
-                        )
-                        ,md=8), justify="center"),
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(html.Iframe(id="graph_rt_web", srcDoc=srcDoc, height=800, width=1600), md=8),
+                        justify="center")
                 ])
             ),
         ]),
+
         return html_plot
     elif pathname == "/graph/retweet_communities":
         web = Web(nx_G=g_communities)
@@ -545,9 +580,12 @@ def render_page_content(pathname):
 def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
     if (n_submits + n_submits2) == 0:
         return dash.no_update
-    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=["machinelearning", " ai "])
+    print("Rows: ", len(df.index))
+    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=["machinelearning", " ai ", "deeplearning", "opendata", "sentinel2", "oulghours", "euspace", "ruleofflaw", "imageoftheday"])
+    print("Rows education: ", len(df_rt.index))
     df_rt = dash_utils.get_rt_hashtags(df_rt)
     df_rt = df_rt[:hashtag_number]
+    df_rt.to_csv("hashtags.csv")
     return dash_utils.get_figure(df_rt)
 
 
@@ -655,6 +693,29 @@ def update_com_graph(value, algorithm):
     web.save("./assets/test.html")
     srcDoc = open("./assets/test.html").read()
     return srcDoc
+
+@app.callback(
+    Output('graph_rt_web', 'srcDoc'),
+    [Input("input-keyword-graph-rt", "n_submit"),],
+    [State('input-keyword-graph-rt', "value")]
+)
+def update_rt_g(n_submits, keywords):
+    global df_ts
+    print("Number", n_submits,  "another", keywords)
+    if n_submits == 0:
+        print("NO UPDATE")
+        return dash.no_update
+    print("PASA POR AQUI")
+    if len(keywords) > 0:
+        filtered_graph = dash_utils.kcore_graph(df, keywords=keywords.split(","))
+        web = Web(nx_G=filtered_graph)
+        web.display.height = 600
+        web.display.gravity = 0.5
+        web.save("./assets/graph_rt.html")
+        srcDoc = open("./assets/graph_rt.html").read()
+        return srcDoc
+
+    return dash.no_update
 
 if __name__ == "__main__":
     print("HI")
