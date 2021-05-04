@@ -16,11 +16,11 @@ import matplotlib.dates as mdates
 import time
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# stop_words para emplear en filtrados:
+# stop_words to apply filtering:
 
 stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
 
-# Función para grafica de barras:
+# Function to create a bargraph:
 
 def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     sns.set()
@@ -33,7 +33,7 @@ def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     plt.tight_layout()
     plt.show()
 
-# Función para obtener los subgrafos con NetworkX:
+# Function to obtain subgraph in NetworkX:
 
 def get_subgraphs(graph):
     import networkx as nx
@@ -44,7 +44,7 @@ def get_subgraphs(graph):
 
     return list_subgraphs
 
-# Función para convertir a direct graph los subgrafos:
+# Converts subgraphs to direct graphs:
 
 def direct_subgraphs(subgraphs):
     list_directsubgraphs = []
@@ -53,7 +53,7 @@ def direct_subgraphs(subgraphs):
 
     return list_directsubgraphs
 
-# Función para filtrar usando el topic que nos interese:
+# Funcition to filter by topic:
 
 def filter_by_topic(df, keywords, stopwords):
     if keywords:
@@ -62,7 +62,7 @@ def filter_by_topic(df, keywords, stopwords):
             df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
     return df
 
-# Función para filtrado por subtopics:
+# Funcition to filter by subtopic:
 
 def filter_by_subtopic(df, keywords2, stopwords2):
     if keywords2:
@@ -71,7 +71,7 @@ def filter_by_subtopic(df, keywords2, stopwords2):
             df = df[~df['Texto'].str.contains("|".join(stopwords2), case=False).any(level=0)]
     return df
 
-# Función para filtrar por interés:
+# Function to filter by interest:
 
 def filter_by_interest(df, interest):
     if interest is str:
@@ -82,7 +82,7 @@ def filter_by_interest(df, interest):
         pass
     return df
 
-# Calcular grafo de citas:
+# Calculate Mentions network graph:
 
 def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -100,7 +100,7 @@ def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords
 
 
 
-# Calcular grafos de RT:
+# Calculate RT network graph:
 
 def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -114,7 +114,7 @@ def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwo
     retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
     return retweetEdges
 
-# Función para extraer edges de rts y citas:
+# Function to extract edges from RTs and Mentions:
 
 def get_edges(values):
     edges = []
@@ -128,8 +128,9 @@ def get_edges(values):
     return edges
 
 
-## Código para crear gráfica de barras  de Hashtags más usados en los retuits:
-# Seleccionamos las filas solo con RTs y creamos al final una lista que contiene todos los textos
+## COde to create a bar graph os most used hastags in RTs:
+# Selection of rows only with RTs and creation of a list containing the texts:
+
 
 def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -143,7 +144,7 @@ def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stop
     listHashtagsRT = dfHashtagsRT['Texto'].to_numpy()
     return listHashtagsRT
 
-# Obtenemos los hashtags usados en esos textos
+# Obtain hashtags used in Text:
 
 def get_edgesHashRT(values):
     edges = []
@@ -153,7 +154,8 @@ def get_edgesHashRT(values):
             edges.append(hashtag)
     return edges
 
-# Organizamos los hashtags en orden de más usados a menos usados y creamos una lista con la cantidad de veces que aparecen
+# Organisation of hashtags by usage and creation of a list containing number of appearances:
+
 def prepare_hashtags(list):
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list = [x.lower() for x in list]
@@ -164,7 +166,7 @@ def prepare_hashtags(list):
     return sortedNumberHashtags, sortedHashtagsRT
 
 
-# Código para calcular el grafo de Hashtags dentro de los retuits
+# Code to visualise the graph of hashtags in RTs:
 
 def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -189,14 +191,15 @@ def get_edgesHashRT2(values):
             edges.append(row)
     return edges
 
-# Combinación de los ejes de RTs y Citas:
+#Combination of edges of RTs and Mentions:
+
 
 def combined_edges(x,y):
     combined_edges = x + y
     return combined_edges
 
-## Código para calcular grafo de hashtags relacionados fuera de RTs. Este grafo opretende mostrar que
-##hashtags estan interrlacionados entre si.
+## Code to show the graph of related hashtags hashtags out of RTs. Shows hashtags related to each other
+
 
 def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -240,7 +243,7 @@ def prepare_hashtags2(list):
     hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
     return hashtagsFinales
 
-# Creación de grafo hashtags más utilizados (relacionado con usuario):
+# Creation of the graph of most used hashtags (related to user):
 
 def get_hashtagsmain2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -268,7 +271,7 @@ def get_edgesmain2(values):
             edges = [i for i in edges if i[1] != stop_words]
     return edges
 
-# Creación de gráfica hashtags más usados fuera de RTs (usar get_hashtagsmain())
+# Creation of the graph of most used hashtags out of RTs(use get_hashtagsmain()):
 
 def get_edgesMain(values):
     edges = []
@@ -278,7 +281,7 @@ def get_edgesMain(values):
             edges.append(hashtag)
     return edges
 
-# Hashtags del Bot:
+# Hashtags from the Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
 def prepare_hashtagsmain(list, stopwords=None):
@@ -406,7 +409,7 @@ def nx2gt(nxG):
     # Done, finally!
     return gtG
 
-# Función para extraer los valores de degree,outdegree, eigenvector y betweenness y crear un csv:
+# Function to extarct indegree, outdegree, eigenvector and betweenness stored in csv:
 
 def csv_degval(Digraph, filename):
     list_values = []
@@ -440,8 +443,8 @@ def csv_degval(Digraph, filename):
                                'Rank'])
     return df.to_csv(filename, index=False)
 
-## Funciones para obtener los elementos de la two mode:
-# Obtención de los elementos u,v y los edges que los unen para usuario y texto en los retuits:
+## Functions to obtain elements for two mode:
+# RTs:
 
 def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     edges = []
@@ -479,7 +482,7 @@ def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopw
 
 
 
-# Obtención de los elemetnos u,v y los edges para los hashtags fuera de los retuits:
+# Obtaining components for two mode for hashtags outside RTs:
 
 def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
     edges = []
@@ -514,7 +517,7 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, sto
     v = [x[1] for x in filter_edges]
     return filter_edges, u, v
 
-# Función para obtener los componentes de la two mode para hashtags en retuits:
+# Function to obtain the components for the two mode for hashtags in RTs:
 
 def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
     edges = []
@@ -684,8 +687,8 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, st
     plt.show()
 
 
-# Cálculo de las palabras más usadas:
-# La función emplea la columna texto y podemos añadir un número n que indica cuantas palabras
+# Calculation of most used words:
+# The function uses the column Text, we can select the number of words plotted:
 
 def most_common(filename,number=None):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -710,7 +713,7 @@ def most_common(filename,number=None):
         del word_freq[word]
     return word_freq.most_common(number)
 
-# Top palabras más usadas en wordcloud:
+# Top most used words in wordcloud:
 
 def most_commonwc(filename):
     df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -740,7 +743,7 @@ def most_commonwc(filename):
     plt.tight_layout(pad=0)
     plt.show()
 
-# Gráficos temporales
+# Temporal series
 
 def main_or_RT_days(filename, RT=None):
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
@@ -764,9 +767,9 @@ def main_or_RT_days(filename, RT=None):
 
     return subset, days
 
-# Función para graficar uso de hashtags en el tiempo. En df utilizar Maindf o dfRT obtenidos con main_or_RT_days.
-# Days emplear los obtenidos en la función anterior también. Elements la lista de hashtags
-# ordenados sortedMH (main hashtags) o sortedHT (RT) obtenidos con las funciones listHT/listHRT- get_edgesMain/
+# Plot temporal series of hashtags usage through time. use Maindf o dfRT obtained with main_or_RT_days.
+# Days: days obtained with previous function. Elements is the list of hashtags
+# sortedMH (main hashtags) or sortedHT (RT) obtained with listHT/listHRT- get_edgesMain/
 # get_EdgesHashRT- preparehashtagsmain/preparehashtags:
 
 def plottemporalserie(days, df, elements, title, x=None, y=None):
@@ -797,7 +800,7 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
     fig.autofmt_xdate()
     plt.show()
 
-# plot temporal series de un hashtag a nuestra elección (variable name), el resto igual:
+# plot temporal series of one hashtag of our interest (variable name):
 
 def one_hastag_temporalseries(df, elements, days, name, title):
     numHashtag = []
@@ -828,7 +831,8 @@ def one_hastag_temporalseries(df, elements, days, name, title):
         print(name + 'not in list')
 start_time = time.time()
 
-# Función para obtener los 50 tweets con mayor Impacto/Opinión y los usuarios con mayor impacto/opinión:
+# Function to obatin the top 50 tweets with higher impact/opinion and users with higher impact/opinion:
+
 
 def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, Impact=None, Opinion=None, n=None):
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False, decimal=',', dtype={'Impacto':'float64'})
@@ -906,7 +910,7 @@ def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stop
     values = df_Users['Values']
     plotbarchart(n, users, values, 'Top ' + str(n) + ' Users with higher ' + w, 'User', w)
 
-# Analisis de sentimiento con VaderSentiment
+# Sentiment analysis using Vader:
 
 analyser = SentimentIntensityAnalyzer()
 def sentiment_analyzer_scores(sentence):
@@ -936,7 +940,7 @@ def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, s
     CSV = df_sentiment.to_csv('vaderSentiment.csv', sep=';', decimal='.', encoding='utf-8')
     return CSV
 
-# Gráfico de barras y csv de users top en Sentiment:
+# Plotbar and csv with tweets and users with higer sentiment:
 
 def sentiment_resultsRT(filename, n=None):
     df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
@@ -979,7 +983,7 @@ def sentiment_results(filename, n=None):
     plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
     return subset
 
-# Combinación de ambos subsets y cálculo absoluto de los usuarios con mayor Sentiment calculado en Vader:
+# Combination of both subsets and ultimate calculation of users with higher Sentiment by Vader:
 
 def combined_vader(subset1, subset2, n=None):
     frames = [subset1, subset2]
@@ -990,52 +994,58 @@ def combined_vader(subset1, subset2, n=None):
     values = vader_df['Values']
     plotbarchart(n, users, values, 'Top' + str(n) + 'Users with higher Sentiment', 'User', 'Sentiment')
 
-# Adición de pesos a lista de ejes y creación de DIGraph:
-# Primera función añade peso como caracteristica en dict de los ejes:
+# Weight adittion to edges list and DIGraph creation:
+# First function, weight adittion as dict:
 
-def make_weightedDiGraph(ejes):
-    edges_tupla = [tuple(x) for x in ejes]
-    G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tupla).items())
+def make_weightedDiGraph(edges):
+    edges_tuple = [tuple(x) for x in edges]
+    G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
     return G
 
-# Segunda función añade peso como tercer elemento de la tupla (nodo, nodo, peso):
+# Second function to add weight as third element in tuple (vertex, vertex, weight):
 
-def weighted_DiGraph(ejes):
-    for lista in ejes:
-        lista.append(1)
+def weighted_DiGraph(edges):
+    for element in edges:
+        element.append(1)
 
     result = Counter()
 
-    for k, v, z in ejes:
+    for k, v, z in edges:
         result.update({(k,v):z})
 
     result = dict(result)
 
-    tupla_ejes_peso = []
+    tuple_edges_weight = []
 
     for key, value in result.items():
         temp = [key, value]
-        tupla_ejes_peso.append(temp)
+        tuple_edges_weight.append(temp)
 
-    ejes_tupla = []
+    edges_tuple = []
 
-    pesos = []
-    for lista in tupla_ejes_peso:
-        ejes_tupla.append(lista[0])
-        pesos.append(lista[1])
+    weights = []
+    for element in tuple_edges_weight:
+        edges_tuple.append(element[0])
+        weights.append(element[1])
 
-    ejes_lista = [list(x) for x in ejes_tupla]
+    edges_list = [list(x) for x in edges_tuple]
 
-    for num in range(len(pesos)):
-        ejes_lista[num].append(pesos[num])
+    for num in range(len(weights)):
+        edges_list[num].append(weights[num])
 
-    ejes_pesos = [tuple(x) for x in ejes_lista]
+    edges_weights = [tuple(x) for x in edges_list]
 
     G = nx.DiGraph()
-    G.add_weighted_edges_from(ejes_pesos)
+    G.add_weighted_edges_from(edges_weights)
     return G
 
-#DataFrame con el cálculo de la media, mediana y sd de Impacto y Opinión:
+# Weight adittion to Graphs:
+
+def weight_Graph(edges):
+    edges_tuple = [tuple(x) for x in edges]
+    G = nx.Graph((x, y, {'weight':v}) for (x, y), v in Counter(edges_tuple).tiems())
+
+# DF wit the calculation of mean, median, and sd of Impact and Opinion:
 
 def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False,decimal=',', low_memory=False)
@@ -1057,7 +1067,8 @@ def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None
     df_statistics = pd.DataFrame(d, index=['Mean', 'Median', 'Standard deviation'])
     return df_statistics
 
-# Creacion del Data Frame conteniendo los parámetros de análisis estructural de un grafo dirigido:
+# Creation of DF containing structural analysis of a directed graph:
+
 
 def graph_structural_analysis(Graph):
     n_nodes = nx.number_of_nodes(Graph)
