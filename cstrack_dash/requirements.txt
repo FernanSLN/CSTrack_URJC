@@ -69,7 +69,6 @@ vaderSentiment==3.3.2
 cmake==3.18.4.post1
 Cython==0.29.23
 Pillow==8.0.1
-networkit==8.1
 Flask-Caching==1.10.1
 pkginfo==1.6.1
 plotly==4.12.0
