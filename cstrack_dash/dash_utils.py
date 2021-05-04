@@ -11,6 +11,8 @@ import networkx as nx
 import pymongo
 import plotly.graph_objects as go
 import networkit as nk
+import hashlib
+from collections import Counter
 from functools import lru_cache
 
 
@@ -94,6 +96,12 @@ def get_graph_figure(G, i=0):
     print("Finish creating figure")
     return fig
 
+def get_hash_name_list(nodes):
+    dict_names = {}
+    for node in nodes:
+        dict_names[node] = hashlib.md5(str(node).encode()).hexdigest()
+    return dict_names
+
 
 def get_community_graph(g, community, i=0):
     c = nx.DiGraph()
@@ -101,6 +109,10 @@ def get_community_graph(g, community, i=0):
         list_edges = g.edges(node)
         list_edges = [edge for edge in list_edges if edge[1] in community[i]]
         c.add_edges_from(list_edges)
+    print(c.nodes)
+    dict_names = get_hash_name_list(c.nodes)
+    print(dict_names)
+    #c = nx.relabel_nodes(c, dict_names)
     return c
 
 def get_communities(g, algorithm="louvain"):
@@ -119,6 +131,40 @@ def get_communities(g, algorithm="louvain"):
             list_communities.append(list_members)
     list_communities = [community for community in list_communities if len(community) > 10]
     return list_communities
+
+def kcore_graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, anonymize=False):
+    df = utils.filter_by_interest(df, interest)
+    df = utils.filter_by_topic(df, keywords, stopwords)
+    dfRT = df[['Usuario', 'Texto']]
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    rt_edges_list = [list(x) for x in dfRT.to_numpy()]
+
+    edges = []
+    for row in rt_edges_list:
+        reg = re.search('@(\w+)', row[1])
+        if reg:
+            matchRT = reg.group(1)
+            row[1] = matchRT
+            #row[1] = hashlib.md5(matchRT.encode()).hexdigest()
+            edges.append(row)
+
+    G = utils.make_weightedDiGraph(edges)
+    G.remove_edges_from(nx.selfloop_edges(G))
+    core_number = nx.core_number(G)
+    values = list(core_number.values())
+    degree_count = Counter(values)
+    G_kcore = nx.k_core(G, k=2)
+    dict_labels = get_hash_name_list(G_kcore.nodes)
+    G_kcore = nx.relabel_nodes(G_kcore, mapping=dict_labels)
+    print(len(G_kcore.nodes))
+    """G_kcore_undirected = nx.to_undirected(G_kcore)
+    subgraphs = utils.get_subgraphs(G_kcore_undirected)
+    subgraphs = [graph for graph in subgraphs if len(graph.nodes) > 5]
+    subgraphs = utils.direct_subgraphs(subgraphs)"""
+
+    return G_kcore
+
 
 def get_n_tweets(df):
     base_date = df.iloc[0]["Date"]
@@ -367,6 +413,21 @@ def get_controls_rt(number_id, keyword_id):
                 ],
                 className="mr-3",
             ),
+            dbc.FormGroup(
+                [
+                    dbc.Label("Keywords:"),
+                    dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
+                ],
+                className="mr-3"
+            ),
+        ],
+        inline=True
+    )
+    return controls
+
+def get_controls_rt_g(keyword_id):
+    controls = dbc.Form(
+        [
             dbc.FormGroup(
                 [
                     dbc.Label("Keywords:"),

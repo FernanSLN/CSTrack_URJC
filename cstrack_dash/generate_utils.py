@@ -45,6 +45,11 @@ def get_subgraphs(graph):
 
 # Función para convertir a direct graph los subgrafos:
 
+def make_weightedDiGraph(ejes):
+    edges_tupla = [tuple(x) for x in ejes]
+    G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tupla).items())
+    return G
+
 def direct_subgraphs(subgraphs):
     list_directsubgraphs = []
     for i in range(len(subgraphs)):
@@ -135,7 +140,6 @@ def get_edgesHashRT(values):
 # Organizamos los hashtags en orden de más usados a menos usados y creamos una lista con la cantidad de veces que aparecen
 def prepare_hashtags(list_h):
     print("This is the list")
-    print(list_h)
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list_x = [x.lower() for x in list_h]
     list_x = [word for word in list_x if word not in stop_words]

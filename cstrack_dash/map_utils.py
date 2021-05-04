@@ -20,6 +20,5 @@ def get_map_locations(df):
     test["country"] = test["country"].fillna(55)
     fig = px.scatter_geo(df, lat="lat", lon="lon", width=1500, height=768,
                          color="country",
-                         hover_name = "screen_name"
                          )
     return fig
