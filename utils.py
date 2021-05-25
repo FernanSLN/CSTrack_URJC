@@ -456,13 +456,14 @@ def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopw
     idx = dfRT['Texto'].str.contains('RT @', na=False)
     dfRT = dfRT[idx]
     subset = dfRT[['Usuario', 'Texto']]
+    subset = subset.drop_duplicates()
     u = list(subset['Usuario'])
     v = list(subset['Texto'])
-    edges = [tuple(x) for x in subset.to_numpy()]
+    edges_tuple = [tuple(x) for x in subset.to_numpy()]
     G = nx.Graph()
     G.add_nodes_from(set(u), bipartite=0)
     G.add_nodes_from(set(v), bipartite=1)
-    G.add_edges_from(edges)
+    G.add_edges_from((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
     print(len(G.nodes))
 
     if len(G.nodes) >= 2000:
@@ -484,7 +485,7 @@ def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopw
 
 # Obtaining components for two mode for hashtags outside RTs:
 
-def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
+def get_twomodeHashMain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
     edges = []
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_interest(df, interest)
@@ -495,8 +496,13 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, sto
     dfEliminarRTs = dfMain[dfMain['Texto'].str.match('RT @')]
     dfMain = dfMain.drop(dfEliminarRTs.index)
     subset = dfMain[['Usuario', 'Texto']]
+    subset = subset.drop_duplicates()
     listHT = [list(x) for x in subset.to_numpy()]
-    stop_words = [['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']]
+    stop_words = ['CitizenScience ','citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']
+
+    filter_edges = []
+    u = []
+    v = []
     for row in listHT:
         match = re.search('#(\w+)', row[1])
         if match:
@@ -504,7 +510,6 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, sto
             row[1] = matchhash
             edges.append(row)
     if filter_hashtags == True:
-        filter_edges = []
         for edge in edges:
             stop = False
             for word in edge:
@@ -513,15 +518,41 @@ def get_uv_HashMain(filename, keywords=None, stopwords=None, keywords2=None, sto
                     stop = True
             if not stop:
                 filter_edges.append(edge)
-    u = [x[0] for x in filter_edges]
-    v = [x[1] for x in filter_edges]
-    return filter_edges, u, v
+
+    if filter_hashtags == True:
+        u = [x[0] for x in filter_edges]
+        v = [x[1] for x in filter_edges]
+        edges_tuple = [tuple(x) for x in filter_edges]
+    else:
+        u = [x[0] for x in edges]
+        v = [x[1] for x in edges]
+        edges_tuple = [tuple(x) for x in edges]
+
+    G = nx.Graph()
+    G.add_nodes_from(set(u), bipartite=0)
+    G.add_nodes_from(set(v), bipartite=1)
+    G.add_edges_from((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
+    print(len(G.nodes))
+    G.remove_edges_from(nx.selfloop_edges(G))
+
+    if len(G.nodes) >= 2000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    counter = Counter(list((nx.core_number(G).values())))
+    print(counter)
+    pos = {}
+
+    pos.update((node, (1, index)) for index, node in enumerate(set(u)))
+    pos.update((node, (2, index)) for index, node in enumerate(set(v)))
+
+    return G
 
 # Function to obtain the components for the two mode for hashtags in RTs:
 
-def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
-    edges = []
-    stop_words = ['CitizenScience', 'citizenScience','citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', '#CitizenScience']
+def get_twomodeHashRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None,
+                      interest=None, filter_hashtags=None):
     df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
@@ -532,6 +563,12 @@ def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopword
     dfRT = df[idx]  # Se seleccionan sólo las filas conpython  RT
     subset = dfRT[['Usuario', 'Texto']]
     listHT = [list(x) for x in subset.to_numpy()]
+    edges = []
+    stop_words = ['CitizenScience', 'citizenScience','citizenscience', 'rt', 'citizen', 'science',
+                  'citsci', 'cienciaciudadana', '#CitizenScience']
+    filter_edges = []
+    u = []
+    v = []
     for row in listHT:
         match = re.search('#(\w+)', row[1])
         if match:
@@ -539,7 +576,6 @@ def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopword
             row[1] = matchhash
             edges.append(row)
     if filter_hashtags == True:
-        filter_edges = []
         for edge in edges:
            stop = False
            for word in edge:
@@ -548,9 +584,36 @@ def getuv_htRT(filename, keywords=None, stopwords=None, keywords2=None, stopword
                     stop = True
            if not stop:
                filter_edges.append(edge)
-    u = [x[0] for x in filter_edges]
-    v = [x[1] for x in filter_edges]
-    return filter_edges, u, v
+
+    if filter_hashtags == True:
+        u = [x[0] for x in filter_edges]
+        v = [x[1] for x in filter_edges]
+        edges_tuple = [tuple(x) for x in filter_edges]
+    else:
+        u = [x[0] for x in edges]
+        v = [x[1] for x in edges]
+        edges_tuple = [tuple(x) for x in edges]
+
+    G = nx.Graph()
+    G.add_nodes_from(set(u), bipartite=0)
+    G.add_nodes_from(set(v), bipartite=1)
+    G.add_edges_from((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
+    print(len(G.nodes))
+    G.remove_edges_from(nx.selfloop_edges(G))
+
+    if len(G.nodes) >= 2000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    counter = Counter(list((nx.core_number(G).values())))
+    print(counter)
+    pos = {}
+
+    pos.update((node, (1, index)) for index, node in enumerate(set(u)))
+    pos.update((node, (2, index)) for index, node in enumerate(set(v)))
+
+    return G
 
 
 # Wordcloud function for main hashtags:
