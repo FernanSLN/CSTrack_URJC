@@ -51,9 +51,12 @@ import en_core_web_sm
 nlp = en_core_web_sm.load()
 
 doc = []
+orgs = []
 for item in names_list:
     process = nlp(item)
     doc.append(process)
+    ner = [(X.text, X.label_) for X in process.ents]
+    orgs.append(ner)
+    orgs = [x for x in orgs if x != []]
 
-
-
+print(orgs)
