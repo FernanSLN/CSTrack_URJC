@@ -155,8 +155,9 @@ def kcore_graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=No
     values = list(core_number.values())
     degree_count = Counter(values)
     G_kcore = nx.k_core(G, k=2)
-    dict_labels = get_hash_name_list(G_kcore.nodes)
-    G_kcore = nx.relabel_nodes(G_kcore, mapping=dict_labels)
+    if anonymize:
+        dict_labels = get_hash_name_list(G_kcore.nodes)
+        G_kcore = nx.relabel_nodes(G_kcore, mapping=dict_labels)
     print(len(G_kcore.nodes))
     """G_kcore_undirected = nx.to_undirected(G_kcore)
     subgraphs = utils.get_subgraphs(G_kcore_undirected)
@@ -344,6 +345,8 @@ def get_twitter_info_df():
     df["Date"] = pd.to_datetime(df['Date'], format="%d/%m/%Y", errors="ignore")
     return df
 
+def get_two_mode_graph(df, keywords=None):
+    return utils.get_twomodeRT(df, keywords)
 
 def get_controls_community2(communities):
     dropdown_options = []
@@ -420,6 +423,12 @@ def get_controls_rt(number_id, keyword_id):
                 ],
                 className="mr-3"
             ),
+            dbc.FormGroup(
+                [
+                    dbc.Label("Topics:"),
+                    get_topic_file(keyword_id + "-upload")
+                ],
+            ),
         ],
         inline=True
     )
@@ -435,10 +444,38 @@ def get_controls_rt_g(keyword_id):
                 ],
                 className="mr-3"
             ),
+            dbc.FormGroup(
+                [
+                    dbc.Label("Topics:"),
+                    get_topic_file(keyword_id + "-upload")
+                ],
+            ),
         ],
         inline=True
     )
     return controls
+
+def get_topic_file(id):
+    upload_html = dcc.Upload(
+        id=id,
+        children=html.Div([
+            'Drag and Drop or ',
+            html.A('Select Files')
+        ]),
+        style={
+            'width': '100%',
+            'height': '60px',
+            'lineHeight': '60px',
+            'borderWidth': '1px',
+            'borderStyle': 'dashed',
+            'borderRadius': '5px',
+            'textAlign': 'center',
+            'margin': '10px'
+        },
+        # Allow multiple files to be uploaded
+        multiple=True
+    )
+    return upload_html
 
 def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
     options = []
@@ -463,6 +500,13 @@ def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
                 [
                     dbc.Label("Hashtags:"),
                     dcc.Dropdown(id=dc_id,  options=options, multi=True, style={"width": "200px"}),
+                ],
+            ),
+
+            dbc.FormGroup(
+                [
+                    dbc.Label("Topics:"),
+                    get_topic_file(dc_id + "-upload")
                 ],
             ),
         ],

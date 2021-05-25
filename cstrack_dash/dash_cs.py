@@ -15,6 +15,7 @@ documentation: https://dash.plot.ly/urls
 #visualization taking into account outdegree
 #sentiment analysis - For internal analysis only -> Bot analysis vs person analysis -> Take into account strange phenomena.
 #Complex networks conference
+import base64
 import dash
 import pandas as pd
 import dash_utils
@@ -28,7 +29,6 @@ import style
 from generate_utils import filter_by_topic
 import map_utils as mu
 from webweb import Web
-from flask import Flask
 from flask_caching import Cache
 import communities_utils as cu
 import hashlib
@@ -39,13 +39,13 @@ print("DATA LOAD")
 com_algorithm = "louvain"
 df_map = dash_utils.get_map_df()
 df = pd.read_csv("Lynguo_Def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
-df_all_h = dash_utils.get_all_hashtags(df)
+"""df_all_h = dash_utils.get_all_hashtags(df)
 df_rt_h = dash_utils.get_rt_hashtags(df)
 df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df)
 df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
 df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
-df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
-wc_main = dash_utils.wordcloudmain(df)
+df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)"""
+"""wc_main = dash_utils.wordcloudmain(df)
 df_deg = dash_utils.get_degrees(df)
 df_sentiment = gu.sentiment_analyser((df))
 df_deg.to_csv("dashdeg.csv")
@@ -59,9 +59,10 @@ graph_communities = []
 for i in range(0, len(communities)):
     graph_communities.append(dash_utils.get_community_graph(G, communities, i))
 print("Termina")
-g_communities = cu.get_communities_representative_graph(G, communities)
-kcore_g =dash_utils.kcore_graph(df=df)
-
+g_communities = cu.get_communities_representative_graph(G, communities)"""
+#kcore_g =dash_utils.kcore_graph(df=df)
+two_mode_g = dash_utils.get_two_mode_graph(df)
+print("El número de nodos es: ", len(two_mode_g.nodes()))
 
 # link fontawesome to get the chevron icons
 FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
@@ -183,6 +184,7 @@ submenu_5 = [
         [
             dbc.NavLink("Retweets", href="/graph/retweets"),
             dbc.NavLink("RT Communities", href="/graph/retweet_communities"),
+            dbc.NavLink("Two mode", href="/graph/two_mode"),
         ],
         id="submenu-5-collapse",
     ),
@@ -360,7 +362,7 @@ def render_page_content(pathname):
         return html_plot
     elif pathname == "/timeseries/rthashtags":
         print("PATH 2")
-        controls = dash_utils.get_controls_ts("input-key-ts-rt", "hashtag-number-ts-rt")
+        controls = dash_utils.get_controls_ts("input-key-ts-rt", "hashtag-number-ts-rt", "hashtags-name-ts-rt", df_ts_rt)
         html_plot = html.Div(children=[
             dcc.Loading(
                 # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -371,7 +373,7 @@ def render_page_content(pathname):
                 children=html.Div(id="loading-output", children=[
                     dbc.Row(controls, justify="center"),
                     dbc.Row(
-                        dbc.Col(dcc.Graph(id='graph_rt_all_hashtags', figure=dash_utils.get_temporal_figure(df_ts_rt)),
+                        dbc.Col(dcc.Graph(id='graph_ts_rt_hashtags', figure=dash_utils.get_temporal_figure(df_ts_rt)),
                                 md=8), justify="center"),
                 ])
             ),
@@ -501,6 +503,32 @@ def render_page_content(pathname):
         ]),
 
         return html_plot
+    elif pathname == "/graph/two_mode":
+        print("PATH GRAPH RT")
+        web = Web(nx_G=two_mode_g)
+        web.display.height = 600
+        web.display.gravity = 0.5
+        web.display.colorBy = "bipartite"
+        web.save("./assets/two_mode.html")
+        srcDoc = open("./assets/two_mode.html").read()
+        controls = dash_utils.get_controls_rt_g(keyword_id="input-keyword-graph-two-mode-rt")
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                style=style.SPINER_STYLE,
+                color="#000000",
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        dbc.Col(html.Iframe(id="graph_rt_two_mode_web", srcDoc=srcDoc, height=800, width=1600), md=8),
+                        justify="center")
+                ])
+            ),
+        ]),
+
+        return html_plot
     elif pathname == "/graph/retweet_communities":
         web = Web(nx_G=g_communities)
         web.display.height = 600
@@ -571,17 +599,28 @@ def render_page_content(pathname):
         ]
     )
 
+def get_topics(input_key, file_contents):
+    if file_contents is not None:
+        decoded = base64.b64decode(file_contents[0].split(",")[1])
+        print(decoded)
+        topics = decoded.decode(encoding="utf-8").replace("\r","").split('\n')
+    else:
+        topics = input_key.split(",")
+    print(topics)
+    return topics
 
 @app.callback(
     Output('graph_all_hashtags', 'figure'),
-    [Input("input-key-all", "n_submit"), Input("hashtag-number-all", "n_submit")],
-    [State('input-key-all', "value"), State('hashtag-number-all', "value")]
+    [Input("input-key-all", "n_submit"), Input("hashtag-number-all", "n_submit"), Input('hashtag-number-all-upload', 'contents')],
+    [State('input-key-all', "value"), State('hashtag-number-all', "value"), State('hashtag-number-all-upload', 'filename'),
+              State('hashtag-number-all-upload', 'last_modified')]
 )
-def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
-    if (n_submits + n_submits2) == 0:
+def update_hashtags_plot_all(n_submits, n_submits2, file_contents, hashtag_number, input_key, upload_data, last_modified):
+    if (n_submits + n_submits2) == 0 and file_contents is None:
         return dash.no_update
+    topics = get_topics(input_key, file_contents)
     print("Rows: ", len(df.index))
-    df_rt = filter_by_topic(df, keywords=input_key.split(","), stopwords=["machinelearning", " ai ", "deeplearning", "opendata", "sentinel2", "oulghours", "euspace", "ruleofflaw", "imageoftheday"])
+    df_rt = filter_by_topic(df, keywords=topics, stopwords=["machinelearning", " ai ", "deeplearning", "opendata", "sentinel2", "oulghours", "euspace", "ruleofflaw", "imageoftheday"])
     print("Rows education: ", len(df_rt.index))
     df_rt = dash_utils.get_rt_hashtags(df_rt)
     df_rt = df_rt[:hashtag_number]
@@ -591,13 +630,15 @@ def update_hashtags_plot_all(n_submits, n_submits2, hashtag_number, input_key):
 
 @app.callback(
     Output('graph_rt_hashtags', 'figure'),
-    [Input("input-key-rt", "n_submit"), Input("hashtag-number-rt", "n_submit")],
-    [State('input-key-rt', "value"), State('hashtag-number-rt', "value")]
+    [Input("input-key-rt", "n_submit"), Input("hashtag-number-rt", "n_submit"), Input('hashtag-number-rt-upload', 'contents')],
+    [State('input-key-rt', "value"), State('hashtag-number-rt', "value"), State('hashtag-number-rt-upload', 'filename'),
+              State('hashtag-number-rt-upload', 'last_modified')]
 )
-def update_hashtags_plot(n_submits, n_submits2, hashtag_number, input_key):
-    if (n_submits + n_submits2) == 0:
+def update_hashtags_plot(n_submits, n_submits2, file_contents, hashtag_number, input_key, upload_data, last_modified):
+    if (n_submits + n_submits2) == 0 and file_contents is None:
         return dash.no_update
-    df_r = filter_by_topic(df, keywords=input_key.split(","), stopwords=None)
+    topics = get_topics(input_key, file_contents)
+    df_r = filter_by_topic(df, keywords=topics, stopwords=None)
     df_r = dash_utils.get_rt_hashtags(df_r)
     df_r = df_r[:hashtag_number]
     return dash_utils.get_figure(df_r)
@@ -605,21 +646,23 @@ def update_hashtags_plot(n_submits, n_submits2, hashtag_number, input_key):
 
 @app.callback(
     Output('graph_ts_all_hashtags', 'figure'),
-    [Input("input-key-ts-all", "n_submit"), Input("hashtag-number-ts-all", "n_submit"), Input("hashtags-name-ts-all", "value")],
-    [State('input-key-ts-all', "value"), State('hashtag-number-ts-all', "value")]
+    [Input("input-key-ts-all", "n_submit"), Input("hashtag-number-ts-all", "n_submit"), Input("hashtags-name-ts-all", "value"),
+     Input('hashtags-name-ts-all-upload', 'contents')],
+    [State('input-key-ts-all', "value"), State('hashtag-number-ts-all', "value"), State('hashtags-name-ts-all-upload', 'filename'),
+              State('hashtags-name-ts-all-upload', 'last_modified')]
 )
-def update_ts_all_plot(n_submits, n_submits2, value_dd, hashtag_number, input_key):
+def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, hashtag_number, input_key, filename, last_modified):
     global df_ts
     print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
     print("VALUE DD", value_dd)
-    if (n_submits + n_submits2) == 0 and not value_dd:
+    if (n_submits + n_submits2) == 0 and not value_dd and file_contents is None:
         print("NO UPDATE")
         return dash.no_update
     print("PASA POR AQUI")
-    if len(input_key) > 0:
-        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=input_key.split(","))
+    topics = get_topics(input_key, file_contents)
+    if len(topics) > 0:
+        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=topics)
         df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
-
     print("LLEGA AQUI")
     if value_dd and len(value_dd) > 0:
         print("LEN MNAYOOOR")
@@ -629,19 +672,34 @@ def update_ts_all_plot(n_submits, n_submits2, value_dd, hashtag_number, input_ke
         return dash_utils.get_temporal_figure(df_ts_filtered, n_hashtags=hashtag_number)
     return dash_utils.get_temporal_figure(df_ts, n_hashtags=hashtag_number)
 
-
 @app.callback(
     Output('graph_ts_rt_hashtags', 'figure'),
-    [Input("input-key-ts-rt", "n_submit"), Input("hashtag-number-ts-rt", "n_submit")],
-    [State('input-key-ts-rt', "value"), State('hashtag-number-ts-rt', "value")]
+    [Input("input-key-ts-rt", "n_submit"), Input("hashtag-number-ts-rt", "n_submit"), Input("hashtags-name-ts-rt", "value"),
+     Input('hashtags-name-ts-rt-upload', 'contents')],
+    [State('input-key-ts-rt', "value"), State('hashtag-number-ts-rt', "value"), State('hashtags-name-ts-rt-upload', 'filename'),
+              State('hashtags-name-ts-rt-upload', 'last_modified')]
 )
-def update_ts_rt_plot(n_submits, n_submits2, hashtag_number, input_key):
+def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, hashtag_number, input_key, filename, last_modified):
+    global df_ts
     print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
-    if (n_submits + n_submits2) == 0:
+    print("VALUE DD", value_dd)
+    if (n_submits + n_submits2) == 0 and not value_dd and file_contents is None:
+        print("NO UPDATE")
         return dash.no_update
-    df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
-    df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
-    return dash_utils.get_temporal_figure(df_ts_rt, n_hashtags=hashtag_number)
+    print("PASA POR AQUI")
+    topics = get_topics(input_key, file_contents)
+    if len(topics) > 0:
+        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=topics)
+        df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
+    print("LLEGA AQUI")
+    if value_dd and len(value_dd) > 0:
+        print("LEN MNAYOOOR")
+        print(df_ts)
+        df_ts_filtered = df_ts[value_dd + ["date"]]
+        print(df_ts_filtered)
+        return dash_utils.get_temporal_figure(df_ts_filtered, n_hashtags=hashtag_number)
+    return dash_utils.get_temporal_figure(df_ts, n_hashtags=hashtag_number)
+
 
 
 @app.callback(
@@ -696,23 +754,55 @@ def update_com_graph(value, algorithm):
 
 @app.callback(
     Output('graph_rt_web', 'srcDoc'),
-    [Input("input-keyword-graph-rt", "n_submit"),],
-    [State('input-keyword-graph-rt', "value")]
+    [Input("input-keyword-graph-rt", "n_submit"),  Input("input-keyword-graph-rt-upload", 'contents')],
+    [State('input-keyword-graph-rt', "value"), State('input-keyword-graph-rt-upload', 'filename'),
+              State('input-keyword-graph-rt-upload', 'last_modified')]
 )
-def update_rt_g(n_submits, keywords):
+def update_rt_g(n_submits, file_contents, keywords, filename, last_modified):
     global df_ts
     print("Number", n_submits,  "another", keywords)
-    if n_submits == 0:
+    print("File contents", file_contents)
+    if n_submits == 0 and file_contents is None:
         print("NO UPDATE")
         return dash.no_update
     print("PASA POR AQUI")
-    if len(keywords) > 0:
-        filtered_graph = dash_utils.kcore_graph(df, keywords=keywords.split(","))
+    print(file_contents)
+    topics = get_topics(keywords, file_contents)
+    if len(topics) > 0:
+        filtered_graph = dash_utils.kcore_graph(df, keywords=topics)
         web = Web(nx_G=filtered_graph)
         web.display.height = 600
         web.display.gravity = 0.5
         web.save("./assets/graph_rt.html")
         srcDoc = open("./assets/graph_rt.html").read()
+        return srcDoc
+
+    return dash.no_update
+
+@app.callback(
+    Output('graph_rt_two_mode_web', 'srcDoc'),
+    [Input("input-keyword-graph-two-mode-rt", "n_submit"),  Input("input-keyword-graph-two-mode-rt-upload", 'contents')],
+    [State('input-keyword-graph-two-mode-rt', "value"), State('input-keyword-graph-two-mode-rt-upload', 'filename'),
+              State('input-keyword-graph-two-mode-rt-upload', 'last_modified')]
+)
+def update_rt_g(n_submits, file_contents, keywords, filename, last_modified):
+    global df_ts
+    print("Number", n_submits,  "another", keywords)
+    print("File contents", file_contents)
+    if n_submits == 0 and file_contents is None:
+        print("NO UPDATE")
+        return dash.no_update
+    print("PASA POR AQUI")
+    print(file_contents)
+    topics = get_topics(keywords, file_contents)
+    if len(topics) > 0:
+        filtered_graph = dash_utils.get_two_mode_graph(df, keywords=topics)
+        web = Web(nx_G=filtered_graph)
+        web.display.height = 600
+        web.display.gravity = 0.5
+        web.display.colorBy = "bipartite"
+        web.save("./assets/two_mode.html")
+        srcDoc = open("./assets/two_mode.html").read()
         return srcDoc
 
     return dash.no_update
