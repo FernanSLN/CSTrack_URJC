@@ -71,6 +71,7 @@ for item in descriptions:
 
 
 df2 = pd.DataFrame({'Follower': names_list, 'Description': descriptions, 'Entity': orgs, 'ER Descriptions':ner_desc})
+
 print(df2)
 
 
