@@ -18,8 +18,9 @@ df = df[['name', 'description']]
 
 df_names = df['name']
 names_list = df_names.tolist()
+descriptions = df.description.tolist()
 names_short = df['name'][:3].tolist()
-print(names_short)
+
 
 def preprocess(sentences):
     tokenized_list = []
@@ -31,7 +32,6 @@ def preprocess(sentences):
 
 names_tokenized = preprocess(names_short)
 
-print(names_tokenized)
 
 pattern = 'NP: {<DT>?<JJ>*<NN>}'
 
@@ -55,8 +55,23 @@ orgs = []
 for item in names_list:
     process = nlp(item)
     doc.append(process)
-    ner = [(X.text, X.label_) for X in process.ents]
+    ner = [X.label_ for X in process.ents]
     orgs.append(ner)
-    orgs = [x for x in orgs if x != []]
+    #orgs = [x for x in orgs if x != []
 
-print(orgs)
+doc2 = []
+ner_desc = []
+for item in descriptions:
+    process = nlp(item)
+    doc2.append(process)
+    ner = [X.label_ for X in process.ents]
+    ner_desc.append(ner)
+
+
+
+
+
+df2 = pd.DataFrame({'Follower': names_list, 'Description': descriptions, 'Entity': orgs, 'ER Descriptions':ner_desc})
+print(df2)
+
+
