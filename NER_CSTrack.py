@@ -38,7 +38,6 @@ pattern = 'NP: {<DT>?<JJ>*<NN>}'
 cp = nltk.RegexpParser(pattern)
 
 ne_tree = nltk.ne_chunk(pos_tag(names_list))
-print(ne_tree)
 
 
 
@@ -64,7 +63,7 @@ ner_desc = []
 for item in descriptions:
     process = nlp(item)
     doc2.append(process)
-    ner = [X.label_ for X in process.ents]
+    ner = [(X.text, X.label_) for X in process.ents]
     ner_desc.append(ner)
 
 
