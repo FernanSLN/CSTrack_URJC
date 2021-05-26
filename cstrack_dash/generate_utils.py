@@ -456,6 +456,37 @@ def csv_degval(Digraph, filename):
     return df
 
 ## Funciones para obtener los elementos de la two mode:
+
+def get_twomodeRT(full_df, keywords=None, stopwords=None, interest=None):
+    df = filter_by_interest(full_df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    dfRT = df[['Usuario', 'Texto']].copy()
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    subset = dfRT[['Usuario', 'Texto']]
+    u = list(subset['Usuario'])
+    v = list(subset['Texto'])
+    edges = [tuple(x) for x in subset.to_numpy()]
+    G = nx.Graph()
+    G.add_nodes_from(set(u), bipartite=0)
+    G.add_nodes_from(set(v), bipartite=1)
+    G.add_edges_from(edges)
+    print("Número nodos:", len(G.nodes))
+    if len(G.nodes) >= 10000:
+        G = nx.k_core(G, k=3)
+    elif len(G.nodes) >= 4000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    counter = Counter(list((nx.core_number(G).values())))
+    print(counter)
+    pos = {}
+
+    pos.update((node, (1, index)) for index, node in enumerate(set(u)))
+    pos.update((node, (2, index)) for index, node in enumerate(set(v)))
+
+    return G
 # Obtención de los elementos u,v y los edges que los unen para usuario y texto en los retuits:
 
 def get_uv_edgesRT(filename, keywords=None, stopwords=None, interest=None):
