@@ -15,6 +15,9 @@ from nltk.corpus import stopwords
 import matplotlib.dates as mdates
 import time
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tag import pos_tag
+import hashlib
 
 # stop_words to apply filtering:
 
@@ -85,7 +88,7 @@ def filter_by_interest(df, interest):
 # Calculate Mentions network graph:
 
 def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
@@ -103,7 +106,7 @@ def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords
 # Calculate RT network graph:
 
 def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1187,3 +1190,86 @@ def edge_weight_distribution(Graph):
 
 
 
+# TFIDF wordcloud:
+
+def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df_Text = df['Texto']
+    df_Text = df_Text.dropna()
+    df_Text = df_Text.drop_duplicates()
+    tvec = TfidfVectorizer(min_df=0.01, max_df=0.5, stop_words='english', ngram_range=(1, 1))
+    tvec_freq = tvec.fit_transform(df_Text.dropna())
+    freqs = np.asarray(tvec_freq.mean(axis=0)).ravel().tolist()
+    weights_df = pd.DataFrame({'term': tvec.get_feature_names(), 'freqs': freqs})
+    weights_df = weights_df.sort_values(by='freqs', ascending=False)
+    terms_list = list(weights_df['term'])
+    terms_df = pd.DataFrame({'terms': terms_list})
+    terms_df['terms'] = terms_df['terms'].apply(nltk.word_tokenize)
+
+    nouns = []
+    for index, row in terms_df.iterrows():
+        nouns.extend(
+            [word for word, pos in pos_tag(row[0]) if (pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS')])
+
+    weights_df = weights_df[weights_df['term'].isin(nouns)]
+
+    freqs = list(weights_df['freqs'])
+    names = list(weights_df['term'])
+    inverted_freqs = list(abs(np.log(freqs)))
+
+    d = {}
+    for key in names:
+        for value in inverted_freqs:
+            d[key] = value
+            inverted_freqs.remove(value)
+            break
+
+    unique_string = (' ').join(names)
+
+    wordcloud = WordCloud(width=900, height=900, background_color='azure', min_font_size=10, max_words=400,
+                          collocations=False, colormap='tab20c')
+    wordcloud.generate_from_frequencies(frequencies=d)
+
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
+
+
+# k core graphs:
+
+def kcore_Graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    dfRT = df[['Usuario', 'Texto']]
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    rt_edges_list = [list(x) for x in dfRT.to_numpy()]
+
+    edges = []
+    for row in rt_edges_list:
+        reg = re.search('@(\w+)', row[1])
+        if reg:
+            matchRT = reg.group(1)
+            row[1] = matchRT
+            row[1] = hashlib.md5(matchRT.encode()).hexdigest()
+            edges.append(row)
+
+    G = make_weightedDiGraph(edges)
+    G.remove_edges_from(nx.selfloop_edges(G))
+
+    if len(G.nodes) >= 2000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    core_number = nx.core_number(G)
+    values = list(core_number.values())
+    degree_count = Counter(values)
+    print(len(G.nodes))
+
+    return G
