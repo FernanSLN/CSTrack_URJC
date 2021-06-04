@@ -136,8 +136,7 @@ def get_edges(values):
 
 
 def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -172,8 +171,7 @@ def prepare_hashtags(list):
 # Code to visualise the graph of hashtags in RTs:
 
 def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -205,8 +203,7 @@ def combined_edges(x,y):
 
 
 def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -291,7 +288,8 @@ def prepare_hashtagsmain(list, stopwords=None):
     citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     lista = [x.lower() for x in list]
     lista = [word for word in lista if word not in citsci_words]
-    lista = [word for word in lista if word not in stopwords]
+    if stopwords != None:
+        lista = [word for word in lista if word not in stopwords]
     mainHashtags = np.unique(lista,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
@@ -812,13 +810,13 @@ def most_commonwc(filename):
 # Temporal series
 
 def main_or_RT_days(filename, RT=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = filename
     df = df[['Fecha', 'Usuario', 'Texto']]
     df = df.dropna()
     if RT == True:
         idx = df['Texto'].str.contains('RT @', na=False)
         subset = df[idx]
-    else:
+    if RT == False:
         dfEliminarRTs = df[df['Texto'].str.match('RT @')]
         subset = df.drop(dfEliminarRTs.index)
 
