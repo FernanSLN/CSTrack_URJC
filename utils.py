@@ -106,7 +106,7 @@ def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords
 # Calculate RT network graph:
 
 def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -443,6 +443,48 @@ def csv_degval(Digraph, filename):
                       columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
                                'Rank'])
     return df.to_csv(filename, index=False)
+
+
+def csv_Outdegval(Digraph, filename):
+    outdegrees = dict(Digraph.out_degree())
+    indegrees = dict(Digraph.in_degree())
+    centrality = dict(nx.eigenvector_centrality(Digraph))
+    betweenness = dict(nx.betweenness_centrality(Digraph))
+    indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x: x[1], reverse=True)
+
+    outdegtupl = sorted([(k, v) for k, v in outdegrees.items()], key=lambda x: x[1], reverse=True)
+    outdegtupl2 = outdegtupl[0:10]
+
+    names = [i[0] for i in outdegtupl2]
+    centraltupl = sorted([(k, v) for k, v in centrality.items()], key=lambda x: x[1], reverse=True)
+    betwentupl = sorted([(k, v) for k, v in betweenness.items()], key=lambda x: x[1], reverse=True)
+
+    list_values = []
+    for name in names:
+        pos_indeg = [y[0] for y in indegtupl].index(name)
+        rank_indeg = pos_indeg + 1
+        indeg_val = indegtupl[pos_indeg][1]
+        pos_outdeg = [y[0] for y in outdegtupl].index(name)
+        rank_outdeg = pos_outdeg + 1
+        outdeg_val = outdegtupl[pos_outdeg][1]
+        pos_central = [y[0] for y in centraltupl].index(name)
+        rank_central = pos_central + 1
+        central_val = centraltupl[pos_central][1]
+        pos_between = [y[0] for y in betwentupl].index(name)
+        rank_between = pos_between + 1
+        between_val = betwentupl[pos_between][1]
+        list_values.append((name, indeg_val, rank_indeg, outdeg_val, rank_outdeg, central_val, rank_central,
+                            between_val, rank_between))
+
+    df = pd.DataFrame(list_values,
+                      columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
+                               'Rank'])
+
+    df.sort_values(by=['Outdegree'], ascending=False)
+
+    return df.to_csv(filename, index=False)
+
+
 
 ## Functions to obtain elements for two mode:
 # RTs:
@@ -859,9 +901,10 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
     plt.xlabel("Fecha", fontsize=15)
     plt.ylabel("Número de veces", fontsize=15)
     plt.xticks(rotation=45)
-    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
+    plt.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0)
 
     fig.autofmt_xdate()
+    fig.tight_layout()
     plt.show()
 
 # plot temporal series of one hashtag of our interest (variable name):
