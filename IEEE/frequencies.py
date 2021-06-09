@@ -62,8 +62,8 @@ for key in names:
 
 unique_string2 = (' ').join(names)
 
-wordcloud = WordCloud(width=900, height=900, background_color='azure', min_font_size=10, max_words=400,
-                          collocations=False, colormap='tab20c')
+wordcloud = WordCloud(width=900, height=900, background_color='white', min_font_size=10, max_words=400,
+                          collocations=False, colormap='Pastel2')
 wordcloud.generate_from_frequencies(frequencies=d)
 
 plt.figure(figsize=(8, 8), facecolor=None)

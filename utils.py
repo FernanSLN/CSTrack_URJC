@@ -1155,7 +1155,7 @@ def weight_Graph(edges):
 # DF wit the calculation of mean, median, and sd of Impact and Opinion:
 
 def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False,decimal=',', low_memory=False)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
