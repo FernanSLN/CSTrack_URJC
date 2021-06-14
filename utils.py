@@ -898,8 +898,8 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
 
         # Se fija el titulo y etiquetas
     plt.title(title, fontsize=20, fontweight='bold')
-    plt.xlabel("Fecha", fontsize=15)
-    plt.ylabel("Número de veces", fontsize=15)
+    plt.xlabel("Date", fontsize=15)
+    plt.ylabel("n times", fontsize=15)
     plt.xticks(rotation=45)
     plt.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0)
 
@@ -926,8 +926,8 @@ def one_hastag_temporalseries(df, elements, days, name, title):
 
             # Se fija el titulo y etiquetas
             plt.title(title, fontsize=20, fontweight='bold')
-            plt.xlabel("Fecha", fontsize=15)
-            plt.ylabel("Número de veces", fontsize=15)
+            plt.xlabel("Date", fontsize=15)
+            plt.ylabel("n times", fontsize=15)
             plt.xticks(rotation=45)
             plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
 
