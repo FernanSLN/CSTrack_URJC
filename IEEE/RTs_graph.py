@@ -24,7 +24,7 @@ for subgraph in subgraphs:
 
 print(longitude)
 
-web = Web(title="retweets", nx_G=G)
+web = Web(title="retweets", nx_G=subgraphs[0])
 web.display.gravity = 1
 
 # show the visualization

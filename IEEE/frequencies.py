@@ -26,7 +26,7 @@ df = filter_by_topic(df, keywords=sdgs_keywords, stopwords=None)
 df_Text = df['Texto']
 df_Text = df_Text.dropna()
 df_Text = df_Text.drop_duplicates()
-tvec = TfidfVectorizer(min_df=0.01, max_df=0.5, stop_words='english', ngram_range=(1, 1))
+tvec = TfidfVectorizer(stop_words='english', ngram_range=(1, 1))
 tvec_freq = tvec.fit_transform(df_Text.dropna())
 freqs = np.asarray(tvec_freq.mean(axis=0)).ravel().tolist()
 weights_df = pd.DataFrame({'term': tvec.get_feature_names(), 'freqs': freqs})
