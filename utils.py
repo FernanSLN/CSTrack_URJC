@@ -412,14 +412,14 @@ def nx2gt(nxG):
 
 # Function to extarct indegree, outdegree, eigenvector and betweenness stored in csv:
 
-def csv_degval(Digraph, filename):
+def csv_degval(Digraph, n, filename):
     list_values = []
     outdegrees2 = dict(Digraph.out_degree())
     indegrees = dict(Digraph.in_degree())
     centrality = dict(nx.eigenvector_centrality(Digraph))
     betweenness = dict(nx.betweenness_centrality(Digraph))
     indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x:x[1], reverse=True)
-    indegtupl = indegtupl[0:10]
+    indegtupl = indegtupl[0:n]
     names = [i[0] for i in indegtupl]
     outdegtupl = sorted([(k,v) for k,v in outdegrees2.items()], key=lambda x:x[1], reverse=True)
     centraltupl = sorted([(k,v) for k,v in centrality.items()], key=lambda x:x[1], reverse=True)
@@ -445,7 +445,7 @@ def csv_degval(Digraph, filename):
     return df.to_csv(filename, index=False)
 
 
-def csv_Outdegval(Digraph, filename):
+def csv_Outdegval(Digraph, n, filename):
     outdegrees = dict(Digraph.out_degree())
     indegrees = dict(Digraph.in_degree())
     centrality = dict(nx.eigenvector_centrality(Digraph))
@@ -453,7 +453,7 @@ def csv_Outdegval(Digraph, filename):
     indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x: x[1], reverse=True)
 
     outdegtupl = sorted([(k, v) for k, v in outdegrees.items()], key=lambda x: x[1], reverse=True)
-    outdegtupl2 = outdegtupl[0:10]
+    outdegtupl2 = outdegtupl[0:n]
 
     names = [i[0] for i in outdegtupl2]
     centraltupl = sorted([(k, v) for k, v in centrality.items()], key=lambda x: x[1], reverse=True)
