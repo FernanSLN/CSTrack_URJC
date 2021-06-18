@@ -15,6 +15,9 @@ from nltk.corpus import stopwords
 import matplotlib.dates as mdates
 import time
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from nltk.tag import pos_tag
+import hashlib
 
 # stop_words to apply filtering:
 
@@ -85,7 +88,7 @@ def filter_by_interest(df, interest):
 # Calculate Mentions network graph:
 
 def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df = df.drop([78202], axis=0)
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
@@ -103,7 +106,7 @@ def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords
 # Calculate RT network graph:
 
 def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -133,8 +136,7 @@ def get_edges(values):
 
 
 def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -169,8 +171,7 @@ def prepare_hashtags(list):
 # Code to visualise the graph of hashtags in RTs:
 
 def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -202,8 +203,7 @@ def combined_edges(x,y):
 
 
 def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -288,7 +288,8 @@ def prepare_hashtagsmain(list, stopwords=None):
     citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     lista = [x.lower() for x in list]
     lista = [word for word in lista if word not in citsci_words]
-    lista = [word for word in lista if word not in stopwords]
+    if stopwords != None:
+        lista = [word for word in lista if word not in stopwords]
     mainHashtags = np.unique(lista,return_counts=True)
     mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
     sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
@@ -411,14 +412,14 @@ def nx2gt(nxG):
 
 # Function to extarct indegree, outdegree, eigenvector and betweenness stored in csv:
 
-def csv_degval(Digraph, filename):
+def csv_degval(Digraph, n, filename):
     list_values = []
     outdegrees2 = dict(Digraph.out_degree())
     indegrees = dict(Digraph.in_degree())
     centrality = dict(nx.eigenvector_centrality(Digraph))
     betweenness = dict(nx.betweenness_centrality(Digraph))
     indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x:x[1], reverse=True)
-    indegtupl = indegtupl[0:10]
+    indegtupl = indegtupl[0:n]
     names = [i[0] for i in indegtupl]
     outdegtupl = sorted([(k,v) for k,v in outdegrees2.items()], key=lambda x:x[1], reverse=True)
     centraltupl = sorted([(k,v) for k,v in centrality.items()], key=lambda x:x[1], reverse=True)
@@ -442,6 +443,48 @@ def csv_degval(Digraph, filename):
                       columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
                                'Rank'])
     return df.to_csv(filename, index=False)
+
+
+def csv_Outdegval(Digraph, n, filename):
+    outdegrees = dict(Digraph.out_degree())
+    indegrees = dict(Digraph.in_degree())
+    centrality = dict(nx.eigenvector_centrality(Digraph))
+    betweenness = dict(nx.betweenness_centrality(Digraph))
+    indegtupl = sorted([(k, v) for k, v in indegrees.items()], key=lambda x: x[1], reverse=True)
+
+    outdegtupl = sorted([(k, v) for k, v in outdegrees.items()], key=lambda x: x[1], reverse=True)
+    outdegtupl2 = outdegtupl[0:n]
+
+    names = [i[0] for i in outdegtupl2]
+    centraltupl = sorted([(k, v) for k, v in centrality.items()], key=lambda x: x[1], reverse=True)
+    betwentupl = sorted([(k, v) for k, v in betweenness.items()], key=lambda x: x[1], reverse=True)
+
+    list_values = []
+    for name in names:
+        pos_indeg = [y[0] for y in indegtupl].index(name)
+        rank_indeg = pos_indeg + 1
+        indeg_val = indegtupl[pos_indeg][1]
+        pos_outdeg = [y[0] for y in outdegtupl].index(name)
+        rank_outdeg = pos_outdeg + 1
+        outdeg_val = outdegtupl[pos_outdeg][1]
+        pos_central = [y[0] for y in centraltupl].index(name)
+        rank_central = pos_central + 1
+        central_val = centraltupl[pos_central][1]
+        pos_between = [y[0] for y in betwentupl].index(name)
+        rank_between = pos_between + 1
+        between_val = betwentupl[pos_between][1]
+        list_values.append((name, indeg_val, rank_indeg, outdeg_val, rank_outdeg, central_val, rank_central,
+                            between_val, rank_between))
+
+    df = pd.DataFrame(list_values,
+                      columns=['Name', 'Indegree', 'Rank', 'Outdegree', 'Rank', 'Eigenvector', 'Rank', 'Betweenness',
+                               'Rank'])
+
+    df.sort_values(by=['Outdegree'], ascending=False)
+
+    return df.to_csv(filename, index=False)
+
+
 
 ## Functions to obtain elements for two mode:
 # RTs:
@@ -809,13 +852,13 @@ def most_commonwc(filename):
 # Temporal series
 
 def main_or_RT_days(filename, RT=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+    df = filename
     df = df[['Fecha', 'Usuario', 'Texto']]
     df = df.dropna()
     if RT == True:
         idx = df['Texto'].str.contains('RT @', na=False)
         subset = df[idx]
-    else:
+    if RT == False:
         dfEliminarRTs = df[df['Texto'].str.match('RT @')]
         subset = df.drop(dfEliminarRTs.index)
 
@@ -855,12 +898,13 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
 
         # Se fija el titulo y etiquetas
     plt.title(title, fontsize=20, fontweight='bold')
-    plt.xlabel("Fecha", fontsize=15)
-    plt.ylabel("Número de veces", fontsize=15)
+    plt.xlabel("Date", fontsize=15)
+    plt.ylabel("n times", fontsize=15)
     plt.xticks(rotation=45)
-    plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
+    plt.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0)
 
     fig.autofmt_xdate()
+    fig.tight_layout()
     plt.show()
 
 # plot temporal series of one hashtag of our interest (variable name):
@@ -882,8 +926,8 @@ def one_hastag_temporalseries(df, elements, days, name, title):
 
             # Se fija el titulo y etiquetas
             plt.title(title, fontsize=20, fontweight='bold')
-            plt.xlabel("Fecha", fontsize=15)
-            plt.ylabel("Número de veces", fontsize=15)
+            plt.xlabel("Date", fontsize=15)
+            plt.ylabel("n times", fontsize=15)
             plt.xticks(rotation=45)
             plt.legend(bbox_to_anchor=(1.04, 0.5), loc="center left", borderaxespad=0)
 
@@ -1111,7 +1155,7 @@ def weight_Graph(edges):
 # DF wit the calculation of mean, median, and sd of Impact and Opinion:
 
 def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False,decimal=',', low_memory=False)
+    df = filename
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1187,3 +1231,86 @@ def edge_weight_distribution(Graph):
 
 
 
+# TFIDF wordcloud:
+
+def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df_Text = df['Texto']
+    df_Text = df_Text.dropna()
+    df_Text = df_Text.drop_duplicates()
+    tvec = TfidfVectorizer(min_df=0.01, max_df=0.5, stop_words='english', ngram_range=(1, 1))
+    tvec_freq = tvec.fit_transform(df_Text.dropna())
+    freqs = np.asarray(tvec_freq.mean(axis=0)).ravel().tolist()
+    weights_df = pd.DataFrame({'term': tvec.get_feature_names(), 'freqs': freqs})
+    weights_df = weights_df.sort_values(by='freqs', ascending=False)
+    terms_list = list(weights_df['term'])
+    terms_df = pd.DataFrame({'terms': terms_list})
+    terms_df['terms'] = terms_df['terms'].apply(nltk.word_tokenize)
+
+    nouns = []
+    for index, row in terms_df.iterrows():
+        nouns.extend(
+            [word for word, pos in pos_tag(row[0]) if (pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS')])
+
+    weights_df = weights_df[weights_df['term'].isin(nouns)]
+
+    freqs = list(weights_df['freqs'])
+    names = list(weights_df['term'])
+    inverted_freqs = list(abs(np.log(freqs)))
+
+    d = {}
+    for key in names:
+        for value in inverted_freqs:
+            d[key] = value
+            inverted_freqs.remove(value)
+            break
+
+    unique_string = (' ').join(names)
+
+    wordcloud = WordCloud(width=900, height=900, background_color='azure', min_font_size=10, max_words=400,
+                          collocations=False, colormap='tab20c')
+    wordcloud.generate_from_frequencies(frequencies=d)
+
+    plt.figure(figsize=(8, 8), facecolor=None)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.tight_layout(pad=0)
+    plt.show()
+
+
+# k core graphs:
+
+def kcore_Graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    dfRT = df[['Usuario', 'Texto']]
+    idx = dfRT['Texto'].str.contains('RT @', na=False)
+    dfRT = dfRT[idx]
+    rt_edges_list = [list(x) for x in dfRT.to_numpy()]
+
+    edges = []
+    for row in rt_edges_list:
+        reg = re.search('@(\w+)', row[1])
+        if reg:
+            matchRT = reg.group(1)
+            row[1] = matchRT
+            row[1] = hashlib.md5(matchRT.encode()).hexdigest()
+            edges.append(row)
+
+    G = make_weightedDiGraph(edges)
+    G.remove_edges_from(nx.selfloop_edges(G))
+
+    if len(G.nodes) >= 2000:
+        G = nx.k_core(G, k=2)
+    else:
+        G = nx.k_core(G, k=1)
+
+    core_number = nx.core_number(G)
+    values = list(core_number.values())
+    degree_count = Counter(values)
+    print(len(G.nodes))
+
+    return G
