@@ -1,5 +1,5 @@
 
-file = open("/home/fernan/Documents/Lista de SDGS.txt", "r")
+file = open("/home/fernan/Documents/sdg_keys.txt", "r")
 lines = file.readlines()
 sdgs_keywords = []
 

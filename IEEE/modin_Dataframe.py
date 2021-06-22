@@ -1,5 +1,10 @@
 import modin.pandas as pd
 import ray
+import sys
+sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
+from utils import filter_by_topic
+
+from sdgs_list import sdgs_keywords
 
 ray.init()
 
@@ -8,6 +13,8 @@ ray.init()
 #os.environ["MODIN_ENGINE"] = "dask"
 #import modin.pandas as pd
 
-df = pd.read_csv("/home/fernan/Documents/Lynguo_May21.csv", sep=';', encoding='utf-8', decimal=',', error_bad_lines=False)
-
-print(df)
+df = pd.read_csv("/home/fernan/Documents/Lynguo_22June.csv", sep=';', encoding='utf-8', decimal=',', error_bad_lines=False)
+df = filter_by_topic(df, sdgs_keywords, stopwords=None)
+df = df['Texto']
+df = df.drop_duplicates(keep='first')
+print(len(df))
