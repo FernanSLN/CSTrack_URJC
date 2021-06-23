@@ -27,7 +27,7 @@ def format_topics_sentences(ldamodel=None, corpus=None, texts=None):
 
 
 # Read data into papers
-papers = pd.read_csv("Lynguo_April21.csv", sep=';', encoding='utf-8', error_bad_lines=False)
+papers = pd.read_csv("/home/fernan/Documents/Lynguo_22June.csv", sep=';', encoding='utf-8', error_bad_lines=False)
 # Print head
 print(papers.head())
 
@@ -102,15 +102,17 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
 pprint(lda_model.print_topics())
 doc_lda = lda_model[corpus]
 
+#import pyLDAvis.gensim_models, use this for newer versions of Python or Conda
 import pyLDAvis.gensim
 import pickle
 import pyLDAvis
 # Visualize the topics
 LDAvis_data_filepath = os.path.join('./ldavis_prepared_'+str(num_topics))
-# # this is a bit time consuming - make the if statement True
+# # this is a bit time co
+# nsuming - make the if statement True
 # # if you want to execute visualization prep yourself
 if 1 == 1:
-    LDAvis_prepared = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
+    LDAvis_prepared = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word)
 
     with open(LDAvis_data_filepath, 'wb') as f:
         pickle.dump(LDAvis_prepared, f)
