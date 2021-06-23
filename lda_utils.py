@@ -102,7 +102,7 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
 pprint(lda_model.print_topics())
 doc_lda = lda_model[corpus]
 
-#import pyLDAvis.gensim_models, use this for newer versions of Python or Conda
+#import pyLDAvis.gensim_models, use this for newer versions of Python or Conda for compatibility
 import pyLDAvis.gensim
 import pickle
 import pyLDAvis
