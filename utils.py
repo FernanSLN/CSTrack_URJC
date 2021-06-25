@@ -158,10 +158,11 @@ def get_edgesHashRT(values):
 
 # Organisation of hashtags by usage and creation of a list containing number of appearances:
 
-def prepare_hashtags(list):
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
+def prepare_hashtags(list, stopwords=None):
+    citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     list = [x.lower() for x in list]
-    list = [word for word in list if word not in stop_words]
+    list = [word for word in list if word not in citsci_words]
+    list = [word for word in list if word not in stopwords]
     list = np.unique(list, return_counts=True)
     list = sorted((zip(list[1], list[0])), reverse=True)
     sortedNumberHashtags, sortedHashtagsRT = zip(*list)
