@@ -13,8 +13,6 @@ ray.init()
 #os.environ["MODIN_ENGINE"] = "dask"
 #import modin.pandas as pd
 
-df = pd.read_csv("/home/fernan/Documents/Lynguo_22June.csv", sep=';', encoding='utf-8', decimal=',', error_bad_lines=False)
-df = filter_by_topic(df, sdgs_keywords, stopwords=None)
-df = df['Texto']
-df = df.drop_duplicates(keep='first')
-print(len(df))
+df = pd.read_csv("/home/fernan/Documents/Lynguo_22June.csv", sep=';', encoding='utf-8', decimal=',',
+                 error_bad_lines=False)
+

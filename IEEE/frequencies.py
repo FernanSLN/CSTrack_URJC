@@ -1,25 +1,17 @@
 import sys
 sys.path.insert(2, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from DataFrame import df
+from modin_Dataframe import df
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 import matplotlib.pyplot as plt
 import nltk
-from nltk.tag import pos_tag
+from nltk. tag import pos_tag
+from nltk.corpus import universal_treebanks
 from nltk import word_tokenize
 from utils import filter_by_topic, filter_by_subtopic, filter_by_interest, tfidf_wordcloud
-
-
-
-
-with open("/home/fernan/Documents/Lista de SDGS.txt", "r") as file:
-    lines = file.readlines()
-    sdgs_keywords = []
-    for l in lines:
-        sdgs_keywords.append(l.replace("\n", ""))
-
+from sdgs_list import sdgs_keywords
 
 df = filter_by_topic(df, keywords=sdgs_keywords, stopwords=None)
 
@@ -37,11 +29,9 @@ terms_df['terms'] = terms_df['terms'].apply(nltk.word_tokenize)
 
 unique_string = (' ').join(terms_list)
 token = word_tokenize(unique_string)
-token = pos_tag(token)
-
-
-nouns = [t[0] for t in token if (t[1] == 'NN' or t[1] == 'NNP' or t[1] == 'NNS' or t[1] == 'NNPS')]
-
+token = pos_tag(token, tagset='universal', lang='eng')
+nouns = [t[0] for t in token if (t[1] == 'NOUN')]
+print(nouns)
 weights_df = weights_df[weights_df['term'].isin(nouns)]
 
 

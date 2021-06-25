@@ -34,7 +34,7 @@ def read_keywords(filename):
         return text.split("\n")
 
 # Read data into papers
-papers = pd.read_csv("lynguo_june.csv", sep=';', encoding='latin-1', error_bad_lines=False)
+papers = pd.read_csv("/home/fernan/Documents/Lynguo_22June.csv", sep=';', encoding='latin-1', error_bad_lines=False)
 #papers = utils.filter_by_topic(papers, keywords=read_keywords("sdg_keys.txt"), stopwords=None)
 # Print head
 print(papers.head())
@@ -119,7 +119,7 @@ lda_model = gensim.models.LdaModel(corpus=corpus,
 print("LLEGA 1")
 doc_lda = lda_model[corpus]
 
-import pyLDAvis.gensim
+import pyLDAvis.gensim_models
 import pickle
 import pyLDAvis
 # Visualize the topics
@@ -127,7 +127,7 @@ LDAvis_data_filepath = os.path.join('./ldavis_prepared_'+str(num_topics))
 # # this is a bit time consuming - make the if statement True
 # # if you want to execute visualization prep yourself
 if 1 == 1:
-    LDAvis_prepared = pyLDAvis.gensim.prepare(lda_model, corpus, id2word, n_jobs=1)
+    LDAvis_prepared = pyLDAvis.gensim_models.prepare(lda_model, corpus, id2word, n_jobs=1)
 
     with open(LDAvis_data_filepath, 'wb') as f:
         pickle.dump(LDAvis_prepared, f)
