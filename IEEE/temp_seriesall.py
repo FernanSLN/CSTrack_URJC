@@ -12,4 +12,4 @@ sortedNHRT, sortedHT = utils.prepare_hashtagsmain(edges, stopwords=['b', 'openda
                                                                     'meteorologia', 'katowice', 'humidity',
                                                                     'davisvantagepro2', 'dane', 'sdgs', 'sdg'])
 
-utils.plottemporalserie(dias, df_all, sortedHT, 'Temporal evolution of top 10 used hashtags', x=0, y=10)
+utils.plottemporalserie(dias, df_all, sortedHT, 'Temporal evolution of top 10 used hashtags \n outside retweets', x=0, y=10)

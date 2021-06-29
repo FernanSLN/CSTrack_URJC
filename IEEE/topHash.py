@@ -14,5 +14,5 @@ sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, sto
                                                                                         'podsumowaniednia', 'meteorologia',
                                                                                         'katowice', 'humidity', 'davisvantagepro2', 'dane', 'sdgs'])
 
-utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 most used hashtags',
+utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 most used hashtags outside retweets',
                    'Hashtag', 'n times')
