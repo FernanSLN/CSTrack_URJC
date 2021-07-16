@@ -29,6 +29,8 @@ def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     sns.set()
     plt.figure(figsize=(10, 8))
     plt.bar(x=x[:numberbars], height=y[:numberbars], color='lightsteelblue')
+    ax = plt.axes()
+    ax.set_facecolor('white')
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.xticks(rotation=45)
@@ -797,8 +799,7 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, st
 # Calculation of most used words:
 # The function uses the column Text, we can select the number of words plotted:
 
-def most_common(filename,number=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+def most_common(df,number=None):
     subset = df['Texto']
     subset = subset.dropna()
     # Definimos stopwords en varios idiomas y símbolos que queremos eliminar del resultado
@@ -822,8 +823,7 @@ def most_common(filename,number=None):
 
 # Top most used words in wordcloud:
 
-def most_commonwc(filename):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
+def most_commonwc(df):
     subset = df['Texto']
     subset = subset.dropna()
     s = stopwords.words('english')

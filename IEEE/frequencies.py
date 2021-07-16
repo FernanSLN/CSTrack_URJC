@@ -12,9 +12,10 @@ from nltk.corpus import universal_treebanks
 from nltk import word_tokenize
 from utils import filter_by_topic, filter_by_subtopic, filter_by_interest, tfidf_wordcloud
 from sdgs_list import sdgs_keywords
+import re
+import keywords_icalt
 
-df = filter_by_topic(df, keywords=sdgs_keywords, stopwords=None)
-
+df = filter_by_topic(df, keywords=keywords_icalt.k, stopwords=keywords_icalt.k_stop)
 df_Text = df['Texto']
 df_Text = df_Text.dropna()
 df_Text = df_Text.drop_duplicates()
@@ -31,8 +32,18 @@ unique_string = (' ').join(terms_list)
 token = word_tokenize(unique_string)
 token = pos_tag(token, tagset='universal', lang='eng')
 nouns = [t[0] for t in token if (t[1] == 'NOUN')]
-print(nouns)
-weights_df = weights_df[weights_df['term'].isin(nouns)]
+
+words = []
+for word in nouns:
+    match = re.findall("\A[a-z-A-Z]+", word)
+    for object in match:
+        words.append(word)
+
+regex = re.compile(r'htt(\w+)')
+
+words = [word for word in words if not regex.match(word)]
+
+weights_df = weights_df[weights_df['term'].isin(words)]
 
 
 freqs = list(weights_df['freqs'])

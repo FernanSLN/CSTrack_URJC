@@ -6,7 +6,7 @@ from webweb import Web
 
 ray.init()
 
-df = mdpd.read_csv("/home/fernan/Documents/tweets_with_category.csv", sep=',', encoding='utf-8', decimal=',',
+df = mdpd.read_csv("/home/fernan/Documents/tweets_with_category_bert.csv", sep=',', encoding='utf-8', decimal=',',
                  error_bad_lines=False)
 
 df = df[['Usuario', 'Texto', 'SDG']]
