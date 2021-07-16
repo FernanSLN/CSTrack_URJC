@@ -24,7 +24,8 @@ print('LLega 1')
 u = list(df['Usuario'])
 v = list(df['Texto'])
 subset = df[['Usuario', 'Texto']]
-
+print(len(set(u)))
+print(len(set(v)))
 edges_tuple = [tuple(x) for x in subset.to_numpy()]
 
 G.add_nodes_from(set(u), bipartite=0)

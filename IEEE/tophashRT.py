@@ -8,5 +8,4 @@ listHashtagsRT2 = utils.get_hashtagsRT(df, keywords=sdgs_keywords)
 edges = utils.get_edgesHashRT(listHashtagsRT2)
 sortedHashtagsRT,sortedNumberHashtags = utils.prepare_hashtags(edges, stopwords='sdgs')
 
-utils.plotbarchart(10, sortedNumberHashtags, sortedHashtagsRT, 'Top 10 retweeted hashtags',
-             'Hashtag', 'n times')
+utils.plotbarchart(10, sortedNumberHashtags, sortedHashtagsRT, title=None, xlabel=None, ylabel=None)
