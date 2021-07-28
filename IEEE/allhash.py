@@ -5,6 +5,9 @@ import utils
 import pandas as pd
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 def get_allhash(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = utils.filter_by_interest(df, interest)
@@ -34,5 +37,23 @@ list_text = get_allhash(df, keywords=sdgs_keywords)
 edges = utils.get_edgesMain(list_text)
 sortedHashtags,sortedNumberHashtags = utils.prepare_hashtags(edges, stopwords='sdgs')
 
-utils.plotbarchart(10, sortedNumberHashtags, sortedHashtags, 'Top 10 most used hashtags',
-             'Hashtag', 'n times')
+#utils.plotbarchart(10, sortedNumberHashtags, sortedHashtags, 'Top 10 most used hashtags',
+             #'Hashtag', 'n times')
+
+from matplotlib.pyplot import subplots
+
+fig, ax = subplots()
+
+"""fig = px.bar(results, x='names', y='count')
+fig.update_layout({
+    "plot_bgcolor" : 'rgba(0,0,0,0)',
+})"""
+
+sns.set()
+plt.figure(figsize=(10, 8))
+ax.bar(sortedNumberHashtags[:10], sortedHashtags[:10], color= "lightsteelblue")
+plt.xticks(rotation=45)
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+plt.tight_layout()
+plt.show()
