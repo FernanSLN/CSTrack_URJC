@@ -3,20 +3,19 @@ import re
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import subplots
 import networkx as nx
-from networkx.algorithms import bipartite
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-from os import path
+from wordcloud import WordCloud, STOPWORDS
 from PIL import Image
 from collections import Counter
 import string
 import nltk
 from nltk.corpus import stopwords
-import matplotlib.dates as mdates
+from nltk. tag import pos_tag
+from nltk import word_tokenize
 import time
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.tag import pos_tag
 import hashlib
 
 # stop_words to apply filtering:
@@ -27,10 +26,11 @@ stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', '
 
 def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     sns.set()
+    fig, ax = subplots()
+    ax.bar(x[:numberbars], y[:numberbars], color="lightsteelblue")
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
     plt.figure(figsize=(10, 8))
-    plt.bar(x=x[:numberbars], height=y[:numberbars], color='lightsteelblue')
-    ax = plt.axes()
-    ax.set_facecolor('white')
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.xticks(rotation=45)
@@ -71,7 +71,7 @@ def filter_by_topic(df, keywords, stopwords):
 
 def filter_by_subtopic(df, keywords2, stopwords2):
     if keywords2:
-        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
+        df = df[df['Texto'].str.contains("|".join(keywords2), case=False).any(level=0)]
         if stopwords2:
             df = df[~df['Texto'].str.contains("|".join(stopwords2), case=False).any(level=0)]
     return df
@@ -1241,7 +1241,7 @@ def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords
     df_Text = df['Texto']
     df_Text = df_Text.dropna()
     df_Text = df_Text.drop_duplicates()
-    tvec = TfidfVectorizer(min_df=0.01, max_df=0.5, stop_words='english', ngram_range=(1, 1))
+    tvec = TfidfVectorizer(stop_words='english', ngram_range=(1, 1))
     tvec_freq = tvec.fit_transform(df_Text.dropna())
     freqs = np.asarray(tvec_freq.mean(axis=0)).ravel().tolist()
     weights_df = pd.DataFrame({'term': tvec.get_feature_names(), 'freqs': freqs})
@@ -1250,15 +1250,28 @@ def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords
     terms_df = pd.DataFrame({'terms': terms_list})
     terms_df['terms'] = terms_df['terms'].apply(nltk.word_tokenize)
 
-    nouns = []
-    for index, row in terms_df.iterrows():
-        nouns.extend(
-            [word for word, pos in pos_tag(row[0]) if (pos == 'NN' or pos == 'NNP' or pos == 'NNS' or pos == 'NNPS')])
+    unique_string = (' ').join(terms_list)
+    token = word_tokenize(unique_string)
+    token = pos_tag(token, tagset='universal', lang='eng')
+    nouns = [t[0] for t in token if (t[1] == 'NOUN')]
 
-    weights_df = weights_df[weights_df['term'].isin(nouns)]
+    words = []
+    for word in nouns:
+        match = re.findall("\A[a-z-A-Z]+", word)
+        for object in match:
+            words.append(word)
+
+    regex = re.compile(r'htt(\w+)')
+
+    words = [word for word in words if not regex.match(word)]
+
+    weights_df = weights_df[weights_df['term'].isin(words)]
 
     freqs = list(weights_df['freqs'])
     names = list(weights_df['term'])
+
+    tagged = nltk.pos_tag(names)
+
     inverted_freqs = list(abs(np.log(freqs)))
 
     d = {}
@@ -1268,10 +1281,10 @@ def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords
             inverted_freqs.remove(value)
             break
 
-    unique_string = (' ').join(names)
+    unique_string2 = (' ').join(names)
 
-    wordcloud = WordCloud(width=900, height=900, background_color='azure', min_font_size=10, max_words=400,
-                          collocations=False, colormap='tab20c')
+    wordcloud = WordCloud(width=900, height=900, background_color='white', min_font_size=10, max_words=400,
+                          collocations=False, colormap='Pastel2')
     wordcloud.generate_from_frequencies(frequencies=d)
 
     plt.figure(figsize=(8, 8), facecolor=None)

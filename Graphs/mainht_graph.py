@@ -1,9 +1,6 @@
-import pandas as pd
-import re
 from webweb import Web
-import hashlib
 import networkx as nx
-import utils
+from utils import utils
 import keywords_icalt
 
 hashmain = utils.get_hashtagsmain2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)

@@ -1,11 +1,6 @@
-import pandas as pd
-import re
-import numpy as np
 from webweb import Web
-import hashlib
 import networkx as nx
-import matplotlib.pyplot as plt
-import  utils
+from utils import utils
 import keywords_icalt
 
 listHashtagsRT2 = utils.get_hashtagsRT2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)

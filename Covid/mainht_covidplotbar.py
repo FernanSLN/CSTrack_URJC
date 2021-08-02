@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 from RTcovid_graph import covid
 
 hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords=covid)

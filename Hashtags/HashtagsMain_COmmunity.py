@@ -1,7 +1,5 @@
-from webweb import Web
-import hashlib
 import networkx as nx
-import utils
+from utils import utils
 import community as community_louvain
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm

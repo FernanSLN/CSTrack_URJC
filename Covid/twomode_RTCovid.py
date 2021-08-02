@@ -1,13 +1,13 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import networkx as nx
 from webweb import Web
 import matplotlib.pyplot as plt
 from RTcovid_graph import covid
 
 
-edges, u, v = utils.get_uv_edgesRT('/home/fernan/Documents/Lynguo_def2.csv',keywords=covid)
+edges, u, v = utils.get_uv_edgesRT('/home/fernan/Documents/Lynguo_def2.csv', keywords=covid)
 
 B = nx.Graph()
 

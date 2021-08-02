@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import filter_by_topic, dataframe_statistics
+from utils.utils import filter_by_topic, dataframe_statistics
 from DataFrame import df
 from sdgs_list import sdgs_keywords
 

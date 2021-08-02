@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CSTrack-URJC.iml" filepath="$PROJECT_DIR$/.idea/CSTrack-URJC.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CSTrack_URJC.iml" filepath="$PROJECT_DIR$/.idea/CSTrack_URJC.iml" />
     </modules>
   </component>
 </project>

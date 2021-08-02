@@ -1,19 +1,12 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import RTcovid_graph
 import pandas as pd
-import re
-import numpy as np
-import seaborn as sns
 import matplotlib.pyplot as plt
-import networkx as nx
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
-from os import path
-from PIL import Image
+from wordcloud import WordCloud, STOPWORDS
 from collections import Counter
 import string
-import nltk
 from nltk.corpus import stopwords
 
 def most_common(df,number=None):

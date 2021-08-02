@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords
 from webweb import Web

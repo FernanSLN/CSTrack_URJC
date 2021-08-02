@@ -1,8 +1,7 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import networkx as nx
-from webweb import Web
 import community as community_louvain
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt

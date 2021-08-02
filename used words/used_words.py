@@ -1,4 +1,4 @@
-import utils
+from utils import utils
 
 most_common = utils.most_common('/home/fernan/Documents/Lynguo_def2.csv', number=10)
 print(most_common)

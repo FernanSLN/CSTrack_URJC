@@ -1,6 +1,6 @@
 from webweb import Web
 import networkx as nx
-import  utils
+from utils import utils
 import keywords_icalt
 
 retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
@@ -9,7 +9,7 @@ retweetEdges = utils.get_edges(retweetList)
 mentionList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 mentionEdges = utils.get_edges(mentionList)
 
-combined_edges = utils.combined_edges(mentionEdges,retweetEdges)
+combined_edges = utils.combined_edges(mentionEdges, retweetEdges)
 
 G = nx.Graph()
 G.add_edges_from(combined_edges)

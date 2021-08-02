@@ -1,14 +1,12 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 from modin_Dataframe import df
-from sdgs_list import sdgs_keywords
 from collections import Counter
 import re
-import nltk
-from nltk import word_tokenize, pos_tag
+from nltk import pos_tag
 from nltk.corpus import stopwords
-from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from wordcloud import WordCloud, STOPWORDS
 import string
 import matplotlib.pyplot as plt
 import keywords_icalt

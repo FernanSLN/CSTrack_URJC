@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 
-import utils
+from utils import utils
 import pandas as pd
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords
@@ -33,7 +33,7 @@ def main_days(filename):
 df_all, dias = main_days(df)
 list_text = get_allhash(df, keywords=sdgs_keywords)
 edges = utils.get_edgesMain(list_text)
-sortedNHt, sortedHashtags = utils.prepare_hashtags(edges, stopwords=['b', 'opendata', 'wind', 'temperature','summary',
+sortedNHt, sortedHashtags = utils.prepare_hashtags(edges, stopwords=['b', 'opendata', 'wind', 'temperature', 'summary',
                                                                     'pressure', 'precipitation', 'podsumowaniednia',
                                                                     'meteorologia', 'katowice', 'humidity',
                                                                     'davisvantagepro2', 'dane', 'sdgs', 'sdg'])

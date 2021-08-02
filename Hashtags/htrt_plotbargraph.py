@@ -1,6 +1,5 @@
-import utils
+from utils import utils
 import keywords_icalt
-import matplotlib.pyplot as plt
 
 listHashtagsRT2 = utils.get_hashtagsRT("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
 edges = utils.get_edgesHashRT(listHashtagsRT2)

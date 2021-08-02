@@ -1,11 +1,7 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import pandas as pd
-import seaborn as sns
-import statistics as stats
-import re
-import numpy as np
 
 # Listado de Marcas de SDGS:
 
