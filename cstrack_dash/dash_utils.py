@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 import networkit as nk
 import hashlib
 from collections import Counter
+from datetime import date
 from functools import lru_cache
 
 
@@ -253,12 +254,15 @@ def get_rt_hashtags(df, k=None, stop=None, n_hashtags=10):
 
 
 def get_all_hashtags(df, k=None, stop=None, n_hashtags=10):
-    hashmain = utils.get_hashtagsmain(df, keywords=k, stopwords=["machinelearning", "ai", "#ai", " ai ", " ai", "ai "])
+    print(df)
+    hashmain = utils.get_hashtagsmain(df, keywords=k, stopwords=stop)
+    print("HASHMAIIIN")
+    print(hashmain)
     edges = utils.get_edgesMain(hashmain)
+    print("EDGEEEEEEEEEEEEEES")
+    print(edges)
     # Con las stopwords eliminamos el bot:
-    sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, stopwords=['airpollution', 'luftdaten',
-                                                                                            'fijnstof', 'waalre', 'pm2',
-                                                                                            'pm10', 'machinelearning', 'ai', "#ai"])
+    sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, stopwords=stop)
     df_hashtags = pd.DataFrame(list(zip(sortedHashtagsmain, sortedNumberHashtags)), columns=["Hashtags", "Count"])
     return df_hashtags
 
@@ -271,6 +275,8 @@ def get_all_temporalseries(df, k=None, stop=None):
     df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
 
     df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
+    print("DF Tras fechas")
+    print(df)
     dias = utils.getDays(df)
 
     listHt = utils.get_hashtagsmain(df, keywords=k)
@@ -407,30 +413,51 @@ def get_controls_activity():
     return controls
 
 def get_controls_rt(number_id, keyword_id):
+    today = date.today()
+
     controls = dbc.Form(
         [
-            dbc.FormGroup(
-                [
-                    dbc.Label("Number hashtags:"),
-                    dbc.Input(id=number_id, n_submit=0, type="number", value=10, debounce=True),
-                ],
-                className="mr-3",
-            ),
-            dbc.FormGroup(
-                [
-                    dbc.Label("Keywords:"),
-                    dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
-                ],
-                className="mr-3"
-            ),
-            dbc.FormGroup(
-                [
-                    dbc.Label("Topics:"),
-                    get_topic_file(keyword_id + "-upload")
-                ],
-            ),
+            dbc.Row([
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Number hashtags:"),
+                            dbc.Input(id=number_id, style={"width": "100px"}, n_submit=0, min=1,
+                                      type="number", value=10, debounce=True),
+                        ]
+                    ), md=4),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Keywords:"),
+                            dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
+                        ],
+                    )),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Keywords:"),
+                            get_topic_file(keyword_id + "-upload")
+                        ],
+                    ))
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Dates:"),
+                            dcc.DatePickerRange(
+                                id='sessions_date',
+                                min_date_allowed=(2020, 9, 29),
+                                max_date_allowed=(today.year, today.month, today.day),
+                                display_format="DD-MM-Y",
+                                clearable=True
+                            ),
+                        ]
+                    ),
+                ])
+            ])
         ],
-        inline=True
     )
     return controls
 
@@ -459,21 +486,19 @@ def get_topic_file(id):
     upload_html = dcc.Upload(
         id=id,
         children=html.Div([
-            'Drag and Drop or ',
-            html.A('Select Files')
+            'Upload ',
+            html.A('File')
         ]),
         style={
             'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
+            'height': "calc(1.5em + .75rem + 2px)",
+            'lineHeight': '35px',
             'borderWidth': '1px',
             'borderStyle': 'dashed',
             'borderRadius': '5px',
             'textAlign': 'center',
-            'margin': '10px'
         },
         # Allow multiple files to be uploaded
-        multiple=True
     )
     return upload_html
 
@@ -481,38 +506,62 @@ def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
     options = []
     for c in df_ts.columns[:-1]:
         options.append({"label": c, "value": c})
+
+    today = date.today()
+
     controls = dbc.Form(
         [
-            dbc.FormGroup(
-                [
-                    dbc.Label("Number:"),
-                    dbc.Input(id=number_id, n_submit=0, type="number", value=10, debounce=True, size=3),
-                ],
-            ),
-            dbc.FormGroup(
-                [
-                    dbc.Label("Keywords:"),
-                    dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True, size=10),
-                ],
-            ),
-
-            dbc.FormGroup(
-                [
-                    dbc.Label("Hashtags:"),
-                    dcc.Dropdown(id=dc_id,  options=options, multi=True, style={"width": "200px"}),
-                ],
-            ),
-
-            dbc.FormGroup(
-                [
-                    dbc.Label("Topics:"),
-                    get_topic_file(dc_id + "-upload")
-                ],
-            ),
-        ],
-        inline=True
+            dbc.Row([
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Number hashtags:"),
+                            dbc.Input(id=number_id, style={"width": "100px"}, n_submit=0, min=1, type="number", value=5, debounce=True),
+                        ]
+                    ), md=4),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Keywords:"),
+                            dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
+                        ],
+                    )),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Keywords:"),
+                            get_topic_file(dc_id + "-upload")
+                        ],
+                    ))
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Dates:"),
+                            dcc.DatePickerRange(
+                                id='sessions_date',
+                                min_date_allowed=(2020, 9, 29),
+                                display_format="DD-MM-Y",
+                                max_date_allowed=(today.year, today.month, today.day),
+                                clearable=True
+                            ),
+                        ]
+                    ),
+                ]),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Hashtags:"),
+                            dcc.Dropdown(id=dc_id, options=options, multi=True, style={"width": "200px"}),
+                        ],
+                    ))
+            ])
+        ]
     )
     return controls
+
+
 
 
 def set_loading(controls, dcc_graph):
@@ -545,3 +594,51 @@ def get_map_df():
     col = con["cstrack"]["geomap_full"]
     info = pd.DataFrame(list(col.find()))
     return info
+
+def get_controls_topics(number_id, keyword_id, topics):
+    today = date.today()
+
+    controls = dbc.Form(
+        [
+            dbc.Row([
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Number topics:"),
+                            dbc.Input(id=number_id, style={"width": "100px"}, n_submit=0, min=1, max=topics, type="number", value=20, debounce=True),
+                        ]
+                    ), md=4),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Keywords:"),
+                            dbc.Input(id=keyword_id, n_submit=0, type="text", value="", debounce=True),
+                        ],
+                    )),
+                dbc.Col(
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Topics:"),
+                            get_topic_file(keyword_id + "-upload")
+                        ],
+                    ))
+            ]),
+            dbc.Row([
+                dbc.Col([
+                    dbc.FormGroup(
+                        [
+                            dbc.Label("Dates:"),
+                            dcc.DatePickerRange(
+                                id='sessions_date',
+                                min_date_allowed=(2020, 9, 29),
+                                display_format="DD-MM-Y",
+                                max_date_allowed=(today.year, today.month, today.day),
+                                clearable=True
+                            ),
+                        ]
+                    ),
+                ])
+            ])
+        ],
+    )
+    return controls

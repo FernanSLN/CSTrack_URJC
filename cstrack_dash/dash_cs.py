@@ -29,9 +29,11 @@ import style
 from generate_utils import filter_by_topic
 import map_utils as mu
 from webweb import Web
-from flask_caching import Cache
 import communities_utils as cu
 import hashlib
+import berttopic_utils as bt
+from submenus import submenu_1, submenu_2, submenu_3, submenu_4, submenu_5, submenu_6, submenu_7
+import datetime
 
 # data load
 #kcor algorithm
@@ -39,12 +41,16 @@ print("DATA LOAD")
 com_algorithm = "louvain"
 df_map = dash_utils.get_map_df()
 df = pd.read_csv("Lynguo_Def2.csv", sep=';', encoding='latin-1', error_bad_lines=False)
-"""df_all_h = dash_utils.get_all_hashtags(df)
+documents = bt.get_cleaned_documents(df)
+
+bert_model = bt.load_model("./models/bert_model_upload_all")
+bert_topics = bt.load_topics("./models/topics.json")
+df_all_h = dash_utils.get_all_hashtags(df)
 df_rt_h = dash_utils.get_rt_hashtags(df)
 df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df)
 df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
 df_ts_rt_raw, days_rt, sortedMH_rt = dash_utils.get_rt_temporalseries(df)
-df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)"""
+df_ts_rt = dash_utils.get_df_ts(df_ts_rt_raw, days_rt, sortedMH_rt)
 """wc_main = dash_utils.wordcloudmain(df)
 df_deg = dash_utils.get_degrees(df)
 df_sentiment = gu.sentiment_analyser((df))
@@ -61,158 +67,16 @@ for i in range(0, len(communities)):
 print("Termina")
 g_communities = cu.get_communities_representative_graph(G, communities)"""
 #kcore_g =dash_utils.kcore_graph(df=df)
-two_mode_g = dash_utils.get_two_mode_graph(df)
-print("El número de nodos es: ", len(two_mode_g.nodes()))
+#two_mode_g = dash_utils.get_two_mode_graph(df)
+
 
 # link fontawesome to get the chevron icons
 FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
 app.config.suppress_callback_exceptions = True
-cache = Cache(app.server, config={'CACHE_TYPE': 'simple'})
-
-#server = app.server
-print("HELLO")
-submenu_1 = [
-    html.Li(
-        # use Row and Col components to position the chevrons
-        dbc.Row(
-            [
-                dbc.Col("Most used hashtags"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-1",
-    ),
-    # we use the Collapse component to hide and reveal the navigation links
-    dbc.Collapse(
-        [
-            dbc.NavLink("All hashtags", href="/hashtags/all"),
-            dbc.NavLink("Retweeted hashtags", href="/hashtags/rt"),
-        ],
-        id="submenu-1-collapse",
-    ),
-]
-
-submenu_2 = [
-    html.Li(
-        dbc.Row(
-            [
-                dbc.Col("Time series"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-2",
-    ),
-    dbc.Collapse(
-        [
-            dbc.NavLink("All hashtags", href="/timeseries/allhashtags"),
-            dbc.NavLink("Retweeted hashtags", href="/timeseries/rthashtags"),
-        ],
-        id="submenu-2-collapse",
-    ),
-]
-
-submenu_3 = [
-    html.Li(
-        dbc.Row(
-            [
-                dbc.Col("Wordcloud"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-3",
-    ),
-    dbc.Collapse(
-        [
-            dbc.NavLink("Wordcloud", href="/wordcloud"),
-        ],
-        id="submenu-3-collapse",
-    ),
-]
-
-submenu_4 = [
-    html.Li(
-        dbc.Row(
-            [
-                dbc.Col("Tables"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-4",
-    ),
-    dbc.Collapse(
-        [
-            dbc.NavLink("Degrees", href="/tables/retweets"),
-            dbc.NavLink("Sentiment", href="/tables/sentiment"),
-        ],
-        id="submenu-4-collapse",
-    ),
-]
-
-submenu_5 = [
-    html.Li(
-        dbc.Row(
-            [
-                dbc.Col("Networks"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-5",
-    ),
-    dbc.Collapse(
-        [
-            dbc.NavLink("Retweets", href="/graph/retweets"),
-            dbc.NavLink("RT Communities", href="/graph/retweet_communities"),
-            dbc.NavLink("Two mode", href="/graph/two_mode"),
-        ],
-        id="submenu-5-collapse",
-    ),
-]
 
 
-submenu_6 = [
-    html.Li(
-        dbc.Row(
-            [
-                dbc.Col("Geomaps"),
-                dbc.Col(
-                    html.I(className="fas fa-chevron-right mr-3"), width="auto"
-                ),
-            ],
-            className="my-1",
-        ),
-        style={"cursor": "pointer"},
-        id="submenu-6",
-    ),
-    dbc.Collapse(
-        [
-            dbc.NavLink("Tweets and Follows per country", href="/geomap/activity"),
-            dbc.NavLink("Locations", href="/geomap/locations"),
-        ],
-        id="submenu-6-collapse",
-    ),
-]
 
 sidebar = html.Div(
     [
@@ -221,7 +85,7 @@ sidebar = html.Div(
         html.P(
             "Available graphs", className="lead"
         ),
-        dbc.Nav([dbc.NavLink("CS-Track stats", href="/", active="exact")] + submenu_1 + submenu_2 + submenu_3 + submenu_4 + submenu_5 + submenu_6, vertical=True),
+        dbc.Nav([dbc.NavLink("CS-Track stats", href="/", active="exact")] + submenu_1 + submenu_2 + submenu_3 + submenu_4 + submenu_5 + submenu_6 + submenu_7, vertical=True),
     ],
     style=style.SIDEBAR_STYLE,
     id="sidebar",
@@ -246,7 +110,7 @@ def set_navitem_class(is_open):
     return ""
 
 
-for i in range(1, 7):
+for i in range(1, 8):
     app.callback(
         Output(f"submenu-{i}-collapse", "is_open"),
         [Input(f"submenu-{i}", "n_clicks")],
@@ -257,7 +121,6 @@ for i in range(1, 7):
         Output(f"submenu-{i}", "className"),
         [Input(f"submenu-{i}-collapse", "is_open")],
     )(set_navitem_class)
-
 
 @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
 def render_page_content(pathname):
@@ -589,6 +452,24 @@ def render_page_content(pathname):
 
         ]),
         return html_plot
+    elif pathname == "/topic/intertopic":
+        print("PATH INTERTOPIC")
+        controls = dash_utils.get_controls_topics("topic-number", "topic-keywords", topics=len(bert_model.get_topics()))
+        html_plot = html.Div(children=[
+            dcc.Loading(
+                # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
+                id="loading-1",
+                type="default",
+                children=html.Div(id="loading-output-1", children=[
+                    dbc.Row(controls, justify="center"),
+                    dbc.Row(
+                        children=[dbc.Col(dcc.Graph(id='graph_intertopic', figure=bt.get_intertopic_distance(bert_model)), md=6),
+                                  dbc.Col(dcc.Graph(id='graph_topic_bar', figure=bt.get_topics_bar(bert_model)), md=4)]),
+                ])
+            ),
+        ]),
+
+        return html_plot
 
 
     # If the user tries to reach a different page, return a 404 message
@@ -609,18 +490,47 @@ def get_topics(input_key, file_contents):
     print(topics)
     return topics
 
+def filter_by_date(df_filtered, start_date, end_date):
+    print("BEFORE FILTER", len(df_filtered.index))
+    if start_date or end_date:
+        print("VALOR DF prefechas", df_filtered)
+        df_filtered['date_filter'] = pd.to_datetime(df_filtered['Fecha'], errors='coerce')
+        df_filtered['date_filter'] = df_filtered['date_filter'].dt.date
+        if start_date:
+            start_time = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+            after_start_date = df_filtered["date_filter"] >= start_time
+            df_filtered = df_filtered.loc[after_start_date]
+            print("AFTER FILTER", len(df_filtered.index))
+            print(start_time, type(start_time))
+        if end_date:
+            end_time = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+            before_end_date = df_filtered["date_filter"] <= end_time
+            df_filtered = df_filtered.loc[before_end_date]
+            print(end_time, type(end_time))
+            print("AFTER FILTER", len(df_filtered.index))
+        print("TRAS FILTROS FECHAS")
+        print(df_filtered)
+    return df_filtered
+
 @app.callback(
     Output('graph_all_hashtags', 'figure'),
-    [Input("input-key-all", "n_submit"), Input("hashtag-number-all", "n_submit"), Input('hashtag-number-all-upload', 'contents')],
+    [Input("input-key-all", "n_submit"), Input("hashtag-number-all", "n_submit"), Input('hashtag-number-all-upload', 'contents'),
+     dash.dependencies.Input('sessions_date', 'start_date'), dash.dependencies.Input('sessions_date', 'end_date')],
     [State('input-key-all', "value"), State('hashtag-number-all', "value"), State('hashtag-number-all-upload', 'filename'),
               State('hashtag-number-all-upload', 'last_modified')]
 )
-def update_hashtags_plot_all(n_submits, n_submits2, file_contents, hashtag_number, input_key, upload_data, last_modified):
+def update_hashtags_plot_all(n_submits, n_submits2, file_contents, start_date, end_date, hashtag_number, input_key,   upload_data, last_modified):
     if (n_submits + n_submits2) == 0 and file_contents is None:
         return dash.no_update
+    print("Topic number:", hashtag_number)
+    print("keys:", input_key)
+    print("start_date", start_date, type(start_date))
+    print("end_date", end_date)
+    df_filtered = df.copy()
+    df_filtered = filter_by_date(df_filtered, start_date, end_date)
     topics = get_topics(input_key, file_contents)
     print("Rows: ", len(df.index))
-    df_rt = filter_by_topic(df, keywords=topics, stopwords=["machinelearning", " ai ", "deeplearning", "opendata", "sentinel2", "oulghours", "euspace", "ruleofflaw", "imageoftheday"])
+    df_rt = filter_by_topic(df_filtered, keywords=topics, stopwords=["machinelearning", " ai ", "deeplearning", "opendata", "sentinel2", "oulghours", "euspace", "ruleofflaw", "imageoftheday"])
     print("Rows education: ", len(df_rt.index))
     df_rt = dash_utils.get_rt_hashtags(df_rt)
     df_rt = df_rt[:hashtag_number]
@@ -630,15 +540,22 @@ def update_hashtags_plot_all(n_submits, n_submits2, file_contents, hashtag_numbe
 
 @app.callback(
     Output('graph_rt_hashtags', 'figure'),
-    [Input("input-key-rt", "n_submit"), Input("hashtag-number-rt", "n_submit"), Input('hashtag-number-rt-upload', 'contents')],
+    [Input("input-key-rt", "n_submit"), Input("hashtag-number-rt", "n_submit"), Input('hashtag-number-rt-upload', 'contents'),
+     dash.dependencies.Input('sessions_date', 'start_date'), dash.dependencies.Input('sessions_date', 'end_date')],
     [State('input-key-rt', "value"), State('hashtag-number-rt', "value"), State('hashtag-number-rt-upload', 'filename'),
               State('hashtag-number-rt-upload', 'last_modified')]
 )
-def update_hashtags_plot(n_submits, n_submits2, file_contents, hashtag_number, input_key, upload_data, last_modified):
+def update_hashtags_plot(n_submits, n_submits2, file_contents, start_date, end_date, hashtag_number,input_key,  upload_data, last_modified):
     if (n_submits + n_submits2) == 0 and file_contents is None:
         return dash.no_update
+    print("Topic number:", hashtag_number)
+    print("keys:", input_key)
+    print("start_date", start_date, type(start_date))
+    print("end_date", end_date)
+    df_filtered = df.copy()
+    df_filtered = filter_by_date(df_filtered, start_date, end_date)
     topics = get_topics(input_key, file_contents)
-    df_r = filter_by_topic(df, keywords=topics, stopwords=None)
+    df_r = filter_by_topic(df_filtered, keywords=topics, stopwords=None)
     df_r = dash_utils.get_rt_hashtags(df_r)
     df_r = df_r[:hashtag_number]
     return dash_utils.get_figure(df_r)
@@ -647,21 +564,29 @@ def update_hashtags_plot(n_submits, n_submits2, file_contents, hashtag_number, i
 @app.callback(
     Output('graph_ts_all_hashtags', 'figure'),
     [Input("input-key-ts-all", "n_submit"), Input("hashtag-number-ts-all", "n_submit"), Input("hashtags-name-ts-all", "value"),
-     Input('hashtags-name-ts-all-upload', 'contents')],
+     Input('hashtags-name-ts-all-upload', 'contents'),  dash.dependencies.Input('sessions_date', 'start_date'), dash.dependencies.Input('sessions_date', 'end_date')],
     [State('input-key-ts-all', "value"), State('hashtag-number-ts-all', "value"), State('hashtags-name-ts-all-upload', 'filename'),
               State('hashtags-name-ts-all-upload', 'last_modified')]
 )
-def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, hashtag_number, input_key, filename, last_modified):
-    global df_ts
-    print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
-    print("VALUE DD", value_dd)
+def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, start_date, end_date, hashtag_number, input_key, filename, last_modified):
+    print("Topic number:", hashtag_number)
+    print("keys:", input_key)
+    print("start_date", start_date, type(start_date))
+    print("end_date", end_date)
+    print("dropdown", value_dd)
     if (n_submits + n_submits2) == 0 and not value_dd and file_contents is None:
         print("NO UPDATE")
         return dash.no_update
     print("PASA POR AQUI")
+    df_filtered = df.copy()
+    df_filtered = filter_by_date(df_filtered, start_date, end_date)
     topics = get_topics(input_key, file_contents)
-    if len(topics) > 0:
-        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=topics)
+    if len(topics) > 0 or start_date or end_date:
+        print("dataframe nuevo")
+        print(df_filtered)
+        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df_filtered, k=topics)
+        print("dataframe gestionado")
+        print(sortedMH)
         df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
     print("LLEGA AQUI")
     if value_dd and len(value_dd) > 0:
@@ -675,21 +600,25 @@ def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, hashtag_n
 @app.callback(
     Output('graph_ts_rt_hashtags', 'figure'),
     [Input("input-key-ts-rt", "n_submit"), Input("hashtag-number-ts-rt", "n_submit"), Input("hashtags-name-ts-rt", "value"),
-     Input('hashtags-name-ts-rt-upload', 'contents')],
+     Input('hashtags-name-ts-rt-upload', 'contents'),  dash.dependencies.Input('sessions_date', 'start_date'), dash.dependencies.Input('sessions_date', 'end_date')],
     [State('input-key-ts-rt', "value"), State('hashtag-number-ts-rt', "value"), State('hashtags-name-ts-rt-upload', 'filename'),
               State('hashtags-name-ts-rt-upload', 'last_modified')]
 )
-def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, hashtag_number, input_key, filename, last_modified):
-    global df_ts
-    print("Number", n_submits, "Submit2", n_submits2, "numbers", hashtag_number, "another", input_key)
-    print("VALUE DD", value_dd)
+def update_ts_all_plot(n_submits, n_submits2, value_dd, file_contents, start_date, end_date, hashtag_number, input_key, filename, last_modified):
+    print("Topic number:", hashtag_number)
+    print("keys:", input_key)
+    print("start_date", start_date, type(start_date))
+    print("end_date", end_date)
+    print("dropdown", value_dd)
     if (n_submits + n_submits2) == 0 and not value_dd and file_contents is None:
         print("NO UPDATE")
         return dash.no_update
     print("PASA POR AQUI")
+    df_filtered = df.copy()
+    df_filtered = filter_by_date(df_filtered, start_date, end_date)
     topics = get_topics(input_key, file_contents)
     if len(topics) > 0:
-        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df, k=topics)
+        df_ts_raw, days, sortedMH = dash_utils.get_all_temporalseries(df_filtered, k=topics)
         df_ts = dash_utils.get_df_ts(df_ts_raw, days, sortedMH)
     print("LLEGA AQUI")
     if value_dd and len(value_dd) > 0:
@@ -807,6 +736,32 @@ def update_rt_g(n_submits, file_contents, keywords, filename, last_modified):
 
     return dash.no_update
 
+
+@app.callback(
+    [Output('graph_intertopic', 'figure'),Output('graph_topic_bar', 'figure')],
+    [Input("topic-keywords", "n_submit"), Input("topic-number", "n_submit"), Input('topic-keywords-upload', 'contents'),
+     dash.dependencies.Input('sessions_date', 'start_date'), dash.dependencies.Input('sessions_date', 'end_date')],
+    [State('topic-keywords', "value"), State("topic-number", "value"), State('topic-keywords-upload', 'filename'),
+              State('topic-keywords-upload', 'last_modified')]
+)
+def update_hashtags_plot_all(n_submits, n_submits2, file_contents, start_date, end_date, input_key,   hashtag_number, upload_data, last_modified):
+    if (n_submits + n_submits2) == 0 and file_contents is None:
+        return dash.no_update
+    print("Topic number:", hashtag_number)
+    print("keys:", input_key)
+    print("start_date", start_date, type(start_date))
+    print("end_date", end_date)
+    keywords = get_topics(input_key, file_contents)
+    new_model = bert_model
+    df_filtered = df.copy()
+    print("BEFORE FILTER", len(df_filtered.index))
+    df_filtered = filter_by_date(df_filtered, start_date, end_date)
+
+    if len(keywords) > 0:
+        df_filtered = filter_by_topic(df_filtered, keywords=keywords, stopwords=None)
+        #documents = bt.get_cleaned_documents(df_filtered)
+        #new_model, new_topics, new_probs = bt.create_bert_model(documents)
+        return bt.get_intertopic_distance(new_model), bt.get_topics_bar(new_model)
 if __name__ == "__main__":
     print("HI")
     app.run_server(host="0.0.0.0",port=6123, debug=False)
