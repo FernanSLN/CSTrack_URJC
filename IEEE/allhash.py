@@ -1,12 +1,11 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
 
-import utils
+from utils import utils
 import pandas as pd
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 def get_allhash(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):

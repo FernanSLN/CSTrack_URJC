@@ -1,7 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
-import pandas as pd
+from utils import utils
 import networkx as nx
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords

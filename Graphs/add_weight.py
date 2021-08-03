@@ -1,7 +1,4 @@
-import pandas as pd
 import networkx as nx
-from webweb import Web
-import utils
 import matplotlib.pyplot as plt
 from collections import Counter
 

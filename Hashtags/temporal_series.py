@@ -1,4 +1,4 @@
-from utils import main_or_RT_days, get_hashtagsmain, get_edgesMain, plottemporalserie, prepare_hashtagsmain, botwords
+from utils.utils import main_or_RT_days, get_hashtagsmain, get_edgesMain, plottemporalserie, prepare_hashtagsmain, botwords
 
 df_main, dias = main_or_RT_days('/home/fernan/Documents/Lynguo_April21.csv', RT=False)
 listHt = get_hashtagsmain('/home/fernan/Documents/Lynguo_April21.csv')

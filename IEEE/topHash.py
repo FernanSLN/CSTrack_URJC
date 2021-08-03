@@ -1,10 +1,9 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 from modin_Dataframe import df
 from sdgs_list import sdgs_keywords
 import matplotlib.pyplot as plt
-import numpy as np
 import seaborn as sns
 
 

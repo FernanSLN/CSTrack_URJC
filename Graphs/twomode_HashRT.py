@@ -1,4 +1,4 @@
-import utils
+from utils import utils
 from webweb import Web
 
 G = utils.get_twomodeHashRT('/home/fernan/Documents/Lynguo_April21.csv', keywords=['Horizon 2020', 'H 2020', 'H2020'],

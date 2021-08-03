@@ -1,7 +1,7 @@
 # Importing modules
 import pandas as pd
-import os
-import utils
+from utils import utils
+
 
 def main():
     def format_topics_sentences(ldamodel=None, corpus=None, texts=None):
@@ -115,7 +115,6 @@ def main():
     corpus = [id2word.doc2bow(text) for text in texts]
     # View
 
-    from pprint import pprint
     # number of topics
     num_topics = 17
     # Alpha parameter

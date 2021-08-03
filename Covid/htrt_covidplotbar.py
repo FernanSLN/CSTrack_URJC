@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import RTcovid_graph
 
 listhtrt = utils.get_hashtagsRT('/home/fernan/Documents/Lynguo_def2.csv', keywords=RTcovid_graph.covid)

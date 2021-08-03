@@ -1,8 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
-import pandas as pd
-import re
+from utils import utils
 
 subsetRT = utils.sentiment_resultsRT('/home/fernan/Documents/Proyectos/CSTrack-URJC/SDGS/vaderSentiment.csv', n=10)
 

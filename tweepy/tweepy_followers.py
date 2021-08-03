@@ -1,6 +1,6 @@
 import tweepy_credentials as tc
 import tweepy
-import utils
+from utils import utils
 import networkx as nx
 import time
 import pandas as pd

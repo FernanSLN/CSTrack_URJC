@@ -1,12 +1,11 @@
-from transformers import BertTokenizer, TFBertModel, BertConfig
+from transformers import BertTokenizer
 from transformers import *
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from keras.preprocessing import sequence
-from keras.preprocessing.text import Tokenizer, text_to_word_sequence
 
-import utils as u_cs
+from utils import utils as u_cs
+
 model_save_path='./models/bert_model_v2.h5'
 
 df = pd.read_json('./tweets.json')

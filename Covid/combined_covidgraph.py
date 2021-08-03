@@ -1,6 +1,6 @@
 import sys
 sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-import utils
+from utils import utils
 import RTcovid_graph
 from webweb import Web
 import networkx as nx
@@ -11,7 +11,7 @@ retweetEdges = utils.get_edges(retweetList)
 mentionList = utils.get_cites("/home/fernan/Documents/Lynguo_def2.csv", keywords=RTcovid_graph.covid)
 mentionEdges = utils.get_edges(mentionList)
 
-combined_edges = utils.combined_edges(mentionEdges,retweetEdges)
+combined_edges = utils.combined_edges(mentionEdges, retweetEdges)
 
 G = nx.Graph()
 G.add_edges_from(combined_edges)

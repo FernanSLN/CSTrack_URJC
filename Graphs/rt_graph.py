@@ -1,8 +1,7 @@
 import pandas as pd
-import re
 import networkx as nx
 from webweb import Web
-import utils
+from utils import utils
 import keywords_icalt
 
 retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
