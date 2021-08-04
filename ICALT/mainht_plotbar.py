@@ -1,6 +1,7 @@
 import utils
+from ICALT.keywords_icalt import k, k_stop
 
-hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv")
+hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", k, k_stop)
 
 edges = utils.get_edgesMain(hashmain)
 
@@ -10,5 +11,5 @@ sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, sto
                                                                                         'fijnstof', 'waalre', 'pm2',
                                                                                         'pm10'])
 
-utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 hashtags más utilizados',
-                   'Hashtag', 'Nº de veces')
+utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 more used hashtags',
+                   'Hashtag', 'n times')

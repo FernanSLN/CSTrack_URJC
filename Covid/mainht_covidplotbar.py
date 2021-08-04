@@ -1,7 +1,5 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
-from RTcovid_graph import covid
+import utils
+from covid_keywords import covid
 
 hashmain = utils.get_hashtagsmain("/home/fernan/Documents/Lynguo_def2.csv", keywords=covid)
 
@@ -9,5 +7,5 @@ edges = utils.get_edgesMain(hashmain)
 
 sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges)
 
-utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 hashtags más utilizados',
-                   'Hashtag', 'Nº de veces')
+utils.plotbarchart(10, sortedHashtagsmain, sortedNumberHashtags, 'Top 10 more used hashtags',
+                   'Hashtag', 'n times')

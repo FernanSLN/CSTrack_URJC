@@ -1,14 +1,12 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
-import RTcovid_graph
+import utils
+from covid_keywords import covid
 from webweb import Web
 import networkx as nx
 
-retweetList = utils.get_retweets("/home/fernan/Documents/Lynguo_def2.csv", keywords=RTcovid_graph.covid)
+retweetList = utils.get_retweets("/home/fernan/Documents/Lynguo_def2.csv", keywords=covid)
 retweetEdges = utils.get_edges(retweetList)
 
-mentionList = utils.get_cites("/home/fernan/Documents/Lynguo_def2.csv", keywords=RTcovid_graph.covid)
+mentionList = utils.get_cites("/home/fernan/Documents/Lynguo_def2.csv", keywords=covid)
 mentionEdges = utils.get_edges(mentionList)
 
 combined_edges = utils.combined_edges(mentionEdges, retweetEdges)

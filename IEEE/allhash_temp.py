@@ -1,10 +1,7 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-
-from utils import utils
+import utils
 import pandas as pd
-from modin_Dataframe import df
-from sdgs_list import sdgs_keywords
+from IEEE.modin_Dataframe import df
+from IEEE.sdgs_list import sdgs_keywords
 
 def get_allhash(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
     df = utils.filter_by_interest(df, interest)
@@ -15,7 +12,7 @@ def get_allhash(df, keywords=None, stopwords=None, keywords2=None, stopwords2=No
     list_text = df_text['Texto'].to_numpy()
     return list_text
 
-def main_days(filename):
+def all_days(filename):
     df = filename
     df = df[['Fecha', 'Usuario', 'Texto']]
     subset = df.dropna()
@@ -30,7 +27,7 @@ def main_days(filename):
 
     return subset, days
 
-df_all, dias = main_days(df)
+df_all, dias = all_days(df)
 list_text = get_allhash(df, keywords=sdgs_keywords)
 edges = utils.get_edgesMain(list_text)
 sortedNHt, sortedHashtags = utils.prepare_hashtags(edges, stopwords=['b', 'opendata', 'wind', 'temperature', 'summary',

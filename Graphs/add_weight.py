@@ -1,14 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from collections import Counter
-
-#retweetList = utils.get_retweets('/home/fernan/Documents/Lynguo_def2.csv')
-
-#retweetEdges = utils.get_edges(retweetList)
-
-ejes = [['Antonio', 'Pedro'], ['Antonio', 'Pedro'], ['Josefina', 'Doña Rojelia'], ['Eltio lavara', 'El cocas de Cruz y Raya']]
-
-e = ['Antonio', 'Pedro']
+import utils
 
 def weighted_graph(ejes):
     for lista in ejes:
@@ -45,8 +38,11 @@ def weighted_graph(ejes):
     G.add_weighted_edges_from(ejes_pesos)
     return G
 
+retweetList = utils.get_retweets('/home/fernan/Documents/Lynguo_def2.csv')
 
-G = weighted_graph(ejes)
+edges = utils.get_edges(retweetList)
+
+G = weighted_graph(edges)
 nx.draw(G)
 plt.show()
 

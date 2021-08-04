@@ -1,6 +1,6 @@
 # Importing modules
 import pandas as pd
-from utils import utils
+import utils
 
 
 def main():

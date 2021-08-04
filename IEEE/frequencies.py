@@ -1,6 +1,5 @@
-import sys
-sys.path.insert(2, '../CSTrack-URJC')
-from modin_Dataframe import df
-from utils.utils import tfidf_wordcloud
+from IEEE.modin_Dataframe import df
+from IEEE.sdgs_list import sdgs_keywords
+from utils import tfidf_wordcloud
 
-tfidf_wordcloud(df)
+tfidf_wordcloud(df, keywords=sdgs_keywords)

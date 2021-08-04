@@ -1,6 +1,6 @@
 import networkx as nx
 from webweb import Web
-from utils import utils
+import utils
 import pandas as pd
 import re
 import hashlib

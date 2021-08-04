@@ -1,18 +1,12 @@
-import plotly.express as px
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
-import re
-
-def filter_by_topic(df, keywords, stopwords):
-    if keywords:
-        df = df[df['Text'].str.contains("|".join(keywords), case=False).any(level=0)]
-        if stopwords:
-            df = df[~df['Text'].str.contains("|".join(stopwords), case=False).any(level=0)]
-    return df
-
+from language_detection.language_distribution import filter_topic
 
 df = pd.read_csv("language_prediction.csv", sep=";", encoding="utf-8")
+
+# Here, once more, if not done before the filter can be done:
+# df = filter_topic(df, keyw.....)
 
 df = df.drop_duplicates(subset="Text", keep="first")
 

@@ -9,14 +9,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 import warnings
-from Count_hash import filter_by_topic
+from utils import filter_by_topic
 
 warnings.simplefilter("ignore")
 
 
 data = pd.read_csv("Language Detection.csv")
 
-df = pd.read_csv("Lynguo_22July.csv", sep=";", encoding="utf-8", error_bad_lines=False)
+df = pd.read_csv("/home/fernan/Documents/Lynguo_22July.csv", sep=";", encoding="utf-8", error_bad_lines=False)
 
 print(data.head(10))
 
@@ -57,7 +57,11 @@ ac = accuracy_score(y_test, y_pred)
 
 cm = confusion_matrix(y_test, y_pred)
 
+# We get the accuracy of the model:
+
 print("Accuracy is :", ac)
+
+# We print the confusion matrix:
 
 plt.figure(figsize=(15,10))
 
@@ -65,10 +69,14 @@ sns.heatmap(cm, annot = True)
 
 plt.show()
 
+# From here we select the text from our DF, we can apply the filter by topic before if we want to check the languages of
+# one smaller and filtered dataset, just remove the next # and apply the keywords:
+#df = filter_by_topic(df, keywords=[...], stopwords=[...])
 
 df_text = df["Texto"]
 df_text.dropna()
 
+# The following function treats each text individually and returns the prediction
 
 def predict_text(df):
     languages = []

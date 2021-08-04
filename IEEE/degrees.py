@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
+import utils
 import networkx as nx
-from modin_Dataframe import df
-from sdgs_list import sdgs_keywords
+from IEEE.modin_Dataframe import df
+from IEEE.sdgs_list import sdgs_keywords
 
 
 rts = utils.get_retweets(df, keywords= sdgs_keywords)
