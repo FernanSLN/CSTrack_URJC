@@ -1,5 +1,5 @@
 import networkx as nx
-from utils import utils
+import utils
 import community as community_louvain
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm

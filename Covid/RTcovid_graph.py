@@ -1,10 +1,7 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
+import utils
 import networkx as nx
 from webweb import Web
-
-covid = ['covid', 'coronavirus', 'pandemic', 'COVID-19', 'SARS-COV-2', 'vaccine', 'vaccination']
+from covid_keywords import covid
 
 rtlist = utils.get_retweets('/home/fernan/Documents/Lynguo_def2.csv', keywords=covid)
 

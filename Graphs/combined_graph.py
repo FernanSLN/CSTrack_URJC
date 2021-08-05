@@ -1,12 +1,11 @@
 from webweb import Web
 import networkx as nx
-from utils import utils
-import keywords_icalt
+import utils
 
-retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv")
 retweetEdges = utils.get_edges(retweetList)
 
-mentionList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+mentionList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv")
 mentionEdges = utils.get_edges(mentionList)
 
 combined_edges = utils.combined_edges(mentionEdges, retweetEdges)

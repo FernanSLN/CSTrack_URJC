@@ -1,11 +1,9 @@
 from webweb import Web
 import networkx as nx
-import RTcovid_graph
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
+import utils
+from covid_keywords import covid
 
-citations_list = utils.get_cites('/home/fernan/Documents/Lynguo_def2.csv', keywords=RTcovid_graph.covid)
+citations_list = utils.get_cites('/home/fernan/Documents/Lynguo_def2.csv', keywords=covid)
 
 cite_edges = utils.get_edges(citations_list)
 

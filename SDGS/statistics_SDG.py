@@ -1,14 +1,12 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
+import utils
 import pandas as pd
 
-# Listado de Marcas de SDGS:
+# List of marks of SDGS:
 
 SDGS_marca = ['CS SDG c', 'CS SDG','CS SDG co', 'CS SDG conference', 'CS SDG conference 2020',
               'CS SDG conference 20', 'CS SDG confer', 'CS SDG conference ', 'CS SDG conferenc']
 
-# Filtrado del df para dejar solo tweets sobre SDGS:
+# Filter by sdgs:
 
 df = pd.read_csv('/home/fernan/Documents/Lynguo_def2.csv', sep=';', encoding='utf-8', error_bad_lines=False,
                  decimal=',', low_memory=False)
@@ -18,7 +16,7 @@ df_SDGS = utils.filter_by_interest(df, SDGS_marca)
 
 df_SDGS = df_SDGS.dropna()
 
-# Calculamos la cantidad de tweets y la media de opinión e impacto:
+# Calculate mean opinion and impact:
 
 print('La cantidad de tweets obtenidos es:', len(df_SDGS))
 

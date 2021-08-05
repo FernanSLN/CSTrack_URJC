@@ -1,9 +1,8 @@
 from webweb import Web
 import networkx as nx
-from utils import utils
-import keywords_icalt
+import utils
 
-hashmain = utils.get_hashtagsmain2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+hashmain = utils.get_hashtagsmain2("/home/fernan/Documents/Lynguo_def2.csv")
 hashmain2= utils.get_edgesmain2(hashmain)
 hashtags_edges = utils.prepare_hashtags2(hashmain2)
 

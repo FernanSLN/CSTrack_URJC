@@ -2,8 +2,9 @@ import pandas as pd
 import networkx as nx
 from webweb import Web
 import utils
+from ICALT.keywords_icalt import k, k_stop
 
-retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv")
+retweetList = utils.get_retweets("/home/fernando/Documentos/Lynguo_def2.csv", k, k_stop)
 print("LENGTH: ", len(retweetList))
 retweetEdges = utils.get_edges(retweetList)
 
@@ -23,6 +24,3 @@ for i in range(2, len(subgraphs)):
 
 # show the visualization
 web.show()
-
-# grafoRT = graph_utils.creategraph(retweetEdges)
-# graph_utils.plotgraph(grafoRT, 'grafoRT', False)

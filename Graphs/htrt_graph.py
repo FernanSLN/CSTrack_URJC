@@ -1,9 +1,8 @@
 from webweb import Web
 import networkx as nx
-from utils import utils
-import keywords_icalt
+import utils
 
-listHashtagsRT2 = utils.get_hashtagsRT2("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+listHashtagsRT2 = utils.get_hashtagsRT2("/home/fernan/Documents/Lynguo_def2.csv")
 edges2 = utils.get_edgesHashRT2(listHashtagsRT2)
 
 G = nx.Graph()

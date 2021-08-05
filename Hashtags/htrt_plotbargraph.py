@@ -1,7 +1,6 @@
-from utils import utils
-import keywords_icalt
+import utils
 
-listHashtagsRT2 = utils.get_hashtagsRT("/home/fernan/Documents/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+listHashtagsRT2 = utils.get_hashtagsRT("/home/fernan/Documents/Lynguo_def2.csv")
 edges = utils.get_edgesHashRT(listHashtagsRT2)
 sortedHashtagsRT,sortedNumberHashtags = utils.prepare_hashtags(edges)
 

@@ -1,9 +1,8 @@
 from webweb import Web
 import networkx as nx
-from utils import utils
-import keywords_icalt
+import utils
 
-mentionsList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv", keywords_icalt.k, keywords_icalt.k_stop)
+mentionsList = utils.get_cites("/home/fernando/Documentos/Lynguo_def2.csv")
 mentionEdges = utils.get_edges(mentionsList)
 
 G = nx.Graph()

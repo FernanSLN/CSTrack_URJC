@@ -1,6 +1,4 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
+import utils
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import pandas as pd
 

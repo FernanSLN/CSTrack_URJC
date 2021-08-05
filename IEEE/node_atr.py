@@ -43,7 +43,7 @@ G.add_edges_from((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).ite
 print('Lega 4')
 
 
-# sacar k = 2,3 y 4 y su len nodes
+# k = 2,3 y 4 & len nodes
 
 
 G = nx.k_core(G, k=2)

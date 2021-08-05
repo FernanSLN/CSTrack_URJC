@@ -1,5 +1,4 @@
-from utils import utils
-import keywords_icalt
+import utils
 import networkx as nx
 from webweb import Web
 
@@ -30,10 +29,10 @@ def display_subgraphs(graphs):
     web.show()
 
 
-retweetList = utils.get_retweets("lynguo_format.csv", ["learn", "educa", "school"], keywords_icalt.k_stop)
+retweetList = utils.get_retweets("lynguo_format.csv", ["learn", "educa", "school"])
 retweetEdges = utils.get_edges(retweetList)
 
-mentionList = utils.get_cites("lynguo_format.csv", keywords_icalt.k, keywords_icalt.k_stop)
+mentionList = utils.get_cites("lynguo_format.csv")
 mentionEdges = utils.get_edges(mentionList)
 
 ct_rt_graphs = generate_graphs(retweetEdges, mentionEdges)

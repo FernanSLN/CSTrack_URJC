@@ -1,8 +1,6 @@
-import sys
-sys.path.insert(1, '/home/fernan/Documents/Proyectos/CSTrack-URJC')
-from utils import utils
-from modin_Dataframe import df
-from sdgs_list import sdgs_keywords
+import utils
+from IEEE.modin_Dataframe import df
+from IEEE.sdgs_list import sdgs_keywords
 
 df_all, dias = utils.main_or_RT_days(df, RT=False)
 listHRT = utils.get_hashtagsmain(df, keywords=sdgs_keywords)

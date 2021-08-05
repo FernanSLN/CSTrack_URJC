@@ -1,4 +1,4 @@
-from utils.utils import plotbarchart
+from utils import plotbarchart
 import pandas as pd
 
 df = pd.read_csv('wordlist.csv', sep=';', encoding='latin-1')

@@ -24,13 +24,12 @@ stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', '
 
 # Function to create a bargraph:
 
-def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
+def plotbarchart(numberbars, x, y, title=None, xlabel=None, ylabel=None):
     sns.set()
     fig, ax = subplots()
     ax.bar(x[:numberbars], y[:numberbars], color="lightsteelblue")
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    plt.figure(figsize=(10, 8))
     plt.xlabel(xlabel, fontsize=15)
     plt.ylabel(ylabel, fontsize=15)
     plt.xticks(rotation=45)
@@ -38,6 +37,16 @@ def plotbarchart(numberbars, x, y, title, xlabel, ylabel):
     plt.tight_layout()
     plt.show()
 
+# Scatter plot:
+
+def scatterplot(x, y):
+    plt.figure(figsize=(10, 8))
+    plt.scatter(x=x, y=y, c="lightsteelblue")
+    plt.xlabel("Indegree", fontsize=15)
+    plt.ylabel("Outdegree", fontsize=15)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 # Function to obtain subgraph in NetworkX:
 
 def get_subgraphs(graph):
@@ -118,6 +127,17 @@ def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwo
     subset = dfRT[['Usuario', 'Texto']]  # Se descarta la fecha
     retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
     return retweetEdges
+
+# Function to extract as list all the types of tweets, use specially for hashtag analysis (with get_edgesMain):
+
+def get_all(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df_text = df[['Usuario', 'Texto']].copy()
+    df_text = df_text.dropna()
+    list_text = df_text['Texto'].to_numpy()
+    return list_text
 
 # Function to extract edges from RTs and Mentions:
 
@@ -799,58 +819,105 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, st
 # Calculation of most used words:
 # The function uses the column Text, we can select the number of words plotted:
 
-def most_common(df,number=None):
+def most_common(df):
     subset = df['Texto']
     subset = subset.dropna()
-    # Definimos stopwords en varios idiomas y símbolos que queremos eliminar del resultado
+    words = " ".join(subset).lower().split()
+    token = pos_tag(words, tagset='universal', lang='eng')
+    word_list = [t[0] for t in token if (t[1] == 'NOUN', t[1] == 'VERB', t[1] == 'ADJ')]
+
+    words = []
+    for word in word_list:
+        match = re.findall("\A[a-z-A-Z]+", word)
+        for object in match:
+            words.append(word)
+
+    regex = re.compile(r'htt(\w+)')
+
+    words = [word for word in words if not regex.match(word)]
+
+    count_word = Counter(words)
+
     s = stopwords.words('english')
     e = stopwords.words('spanish')
     r = STOPWORDS
     d = stopwords.words('german')
     p = string.punctuation
-    new_elements = ('\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-', '???')
-    s.extend(new_elements)
-    s.extend(e)
-    s.extend(r)
-    s.extend(d)
-    s.extend(p)
-    s = set(s)
-    # Calculamos la frecuencia de las palabras
-    word_freq = Counter(" ".join(subset).lower().split())
-    for word in s:
-        del word_freq[word]
-    return word_freq.most_common(number)
-
-# Top most used words in wordcloud:
-
-def most_commonwc(df):
-    subset = df['Texto']
-    subset = subset.dropna()
-    s = stopwords.words('english')
-    e = stopwords.words('spanish')
-    r = STOPWORDS
-    d = stopwords.words('german')
-    p = string.punctuation
-    new_elements = ('\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-','the', 'to')
+    new_elements = (
+    '\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-', 'the', 'to', 'co', 'n', 'https', 'we?re', 'everyone?s',
+    'supporters?', 'z', 'here:', 'science,', 'project.', 'citizen', 'science', 'us', 'student?', 'centre?', 'science?',
+    ')', 'media?)', 'education?', 'reuse,', 'older!', 'scientists?', 'don?t', 'it?s', 'i?m', 'w/', 'w', 'more:')
     s.extend(new_elements)
     s.extend(e)
     s.extend(r)
     s.extend(d)
     s.extend(p)
     stopset = set(s)
-    word_freq = Counter(" ".join(subset).lower().split())
-    for word in s:
-        del word_freq[word]
+
+    for word in stopset:
+        del count_word[word]
+
+    tuples_dict = sorted(count_word.items(), key=lambda x: x[1], reverse=True)
+    words_pt = []
+    numbers_pt = []
+
+    for tuple in tuples_dict:
+        words_pt.append(tuple[0])
+        numbers_pt.append(tuple[1])
+
+    return tuples_dict, words_pt, numbers_pt
+
+# Top most used words in wordcloud:
+
+def most_commonwc(df):
+    subset = df['Texto']
+    subset = subset.dropna()
+    words = " ".join(subset).lower().split()
+    token = pos_tag(words, tagset='universal', lang='eng')
+    word_list = [t[0] for t in token if (t[1] == 'NOUN', t[1] == 'VERB', t[1] == 'ADJ')]
+
+    words = []
+    for word in word_list:
+        match = re.findall("\A[a-z-A-Z]+", word)
+        for object in match:
+            words.append(word)
+
+    regex = re.compile(r'htt(\w+)')
+
+    words = [word for word in words if not regex.match(word)]
+
+    count_word = Counter(words)
+
+    s = stopwords.words('english')
+    e = stopwords.words('spanish')
+    r = STOPWORDS
+    d = stopwords.words('german')
+    p = string.punctuation
+    new_elements = (
+    '\\n', 'rt', '?', '¿', '&', 'that?s', '??', '-', 'the', 'to', 'co', 'n', 'https', 'we?re', 'everyone?s',
+    'supporters?', 'z', 'here:', 'science,', 'project.', 'citizen', 'science', 'us', 'student?', 'centre?', 'science?',
+    ')', 'media?)', 'education?', 'reuse,', 'older!', 'scientists?', 'don?t', 'it?s', 'i?m', 'w/', 'w', 'more:')
+    s.extend(new_elements)
+    s.extend(e)
+    s.extend(r)
+    s.extend(d)
+    s.extend(p)
+    stopset = set(s)
+
+    for word in stopset:
+        del count_word[word]
+
     wordcloud = WordCloud(width=900, height=900, background_color='white', stopwords=stopset,
-                          min_font_size=10, max_words=10405, collocations=False,
-                          colormap='winter').generate_from_frequencies(word_freq)
+                          min_font_size=10, max_words=300, collocations=False,
+                          colormap='winter').generate_from_frequencies(count_word)
     plt.figure(figsize=(8, 8), facecolor=None)
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.tight_layout(pad=0)
-    plt.show()
+    plt.show
 
 # Temporal series
+# Selection of days between RTs or main texts:
 
 def main_or_RT_days(filename, RT=None):
     df = filename
@@ -873,6 +940,24 @@ def main_or_RT_days(filename, RT=None):
     days.sort()
 
     return subset, days
+
+# Selection of days of both types of tweets, use with get_all():
+
+def all_days(filename):
+    df = filename
+    df = df[['Fecha', 'Usuario', 'Texto']]
+    subset = df.dropna()
+    subset['Fecha'] = pd.to_datetime(subset['Fecha'], errors='coerce')
+    subset = subset.dropna()
+    subset['Fecha'] = subset['Fecha'].dt.date
+
+    # Obtenemos los días en el subset:
+    df_Fecha = subset['Fecha']
+    days = pd.unique(df_Fecha)
+    days.sort()
+
+    return subset, days
+
 
 # Plot temporal series of hashtags usage through time. use Maindf o dfRT obtained with main_or_RT_days.
 # Days: days obtained with previous function. Elements is the list of hashtags
@@ -1151,7 +1236,8 @@ def weighted_DiGraph(edges):
 
 def weight_Graph(edges):
     edges_tuple = [tuple(x) for x in edges]
-    G = nx.Graph((x, y, {'weight':v}) for (x, y), v in Counter(edges_tuple).tiems())
+    G = nx.Graph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
+    return G
 
 # DF wit the calculation of mean, median, and sd of Impact and Opinion:
 
@@ -1328,3 +1414,31 @@ def kcore_Graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=No
     print(len(G.nodes))
 
     return G
+
+# Add an atribute to nodes in bipartite graph:
+
+def add_attribute(df, category=None):
+    df = df[['Usuario', 'Texto', category]]
+    df = df.dropna()
+    idx = df['Texto'].str.contains('RT @', na=False)
+    df = df[idx]
+
+    G = nx.Graph()
+
+    u = list(df['Usuario'])
+    v = list(df['Texto'])
+    subset = df[['Usuario', 'Texto']]
+    print(len(set(u)))
+    print(len(set(v)))
+    edges_tuple = [tuple(x) for x in subset.to_numpy()]
+
+    G.add_nodes_from(set(u), bipartite=0)
+    G.add_nodes_from(set(v), bipartite=1)
+
+    for index, row in df.iterrows():
+        G.nodes[row['Texto']][category] = row[category]
+
+    G.add_edges_from((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
+    return G
+
+
