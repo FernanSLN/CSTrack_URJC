@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>berttopic_utils module &#8212; CSTrack nan documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/classic.css" />
+    
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="communities_utils module" href="communities_utils.html" />
+    <link rel="prev" title="CSTrack Visualizations" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="communities_utils.html" title="communities_utils module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CSTrack Visualizations"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CSTrack nan documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">berttopic_utils module</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-berttopic_utils">
+<span id="berttopic-utils-module"></span><h1>berttopic_utils module<a class="headerlink" href="#module-berttopic_utils" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.create_bert_model">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">create_bert_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">documents</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.create_bert_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.filter_by_topic">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">filter_by_topic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keywords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stopwords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.filter_by_topic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_cleaned_documents">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_cleaned_documents</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_original</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_cleaned_documents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_heatmap">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_heatmap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_heatmap" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_hierarchical_clusterin">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_hierarchical_clusterin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_hierarchical_clusterin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_intertopic_distance">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_intertopic_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n_topics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_intertopic_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_topics_bar">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_topics_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_n_topics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_topics_bar" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.get_topics_over_time">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">get_topics_over_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">documents</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topics</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.get_topics_over_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.load_model">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.load_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.load_topics">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">load_topics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.load_topics" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="berttopic_utils.remove_stopwords">
+<span class="sig-prename descclassname"><span class="pre">berttopic_utils.</span></span><span class="sig-name descname"><span class="pre">remove_stopwords</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_words</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#berttopic_utils.remove_stopwords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">CSTrack Visualizations</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="communities_utils.html"
+                        title="next chapter">communities_utils module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/berttopic_utils.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="communities_utils.html" title="communities_utils module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="CSTrack Visualizations"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">CSTrack nan documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">berttopic_utils module</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, David Roldan and Fernando Martinez.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>
