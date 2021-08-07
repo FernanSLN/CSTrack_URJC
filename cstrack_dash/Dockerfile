@@ -7,4 +7,5 @@ RUN pip install --upgrade pip --no-cache-dir -r requirements.txt
 EXPOSE 6123
 
 COPY . /home/project/dash
+CMD ["bash"]
 
