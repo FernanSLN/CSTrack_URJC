@@ -25,6 +25,17 @@ stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', '
 # Function to create a bargraph:
 
 def plotbarchart(numberbars, x, y, title=None, xlabel=None, ylabel=None):
+    """
+    Given a number of elements to plot and the elements in x and y axis the function returns a barchart
+
+    :param numberbars: Number of elements to plot in the chart
+    :param x: Elements for x axis
+    :param y: Elements for y axis, number of appearances of the x elements
+    :param title: Title for the figure, defaults to None
+    :param xlabel: Label for the x axis, defaults to None
+    :param ylabel: Label for the y axis, defaults to None
+
+    """
     sns.set()
     fig, ax = subplots()
     ax.bar(x[:numberbars], y[:numberbars], color="lightsteelblue")
@@ -40,6 +51,13 @@ def plotbarchart(numberbars, x, y, title=None, xlabel=None, ylabel=None):
 # Scatter plot:
 
 def scatterplot(x, y):
+    """
+    Given the elements for x axis and the number of the elements for y axis the function returns a scatterplot
+
+    :param x: Elements for the x axis
+    :param y: Elements for the y axis, number of appearances of the x elements
+
+    """
     plt.figure(figsize=(10, 8))
     plt.scatter(x=x, y=y, c="lightsteelblue")
     plt.xlabel("Indegree", fontsize=15)
@@ -50,7 +68,12 @@ def scatterplot(x, y):
 # Function to obtain subgraph in NetworkX:
 
 def get_subgraphs(graph):
-    import networkx as nx
+    """
+    Given a networkx Graph the function returns the subgraphs stored in a list
+
+    :param graph: Networkx undirected graph
+    :return: list of subgraphs as networkx objects
+    """
     components = list(nx.connected_components(graph))
     list_subgraphs = []
     for component in components:
@@ -61,6 +84,13 @@ def get_subgraphs(graph):
 # Converts subgraphs to direct graphs:
 
 def direct_subgraphs(subgraphs):
+    """
+    Given a networkx undirected list of subgraph the function returns all the graphs as directed
+
+    :param subgraphs: List of undirected networkx subgraphs
+    :return: List of directed subgraphs as networkx objects
+
+    """
     list_directsubgraphs = []
     for i in range(len(subgraphs)):
         list_directsubgraphs.append(subgraphs[i].to_directed())
@@ -70,6 +100,14 @@ def direct_subgraphs(subgraphs):
 # Funcition to filter by topic:
 
 def filter_by_topic(df, keywords, stopwords):
+    """
+    Given a DataFrame the function returns the dataframe filtered according the given keywords and stopwords
+
+    :param df: Dataframe with all the tweets
+    :param keywords: List of words acting as key to filter the dataframe
+    :param stopwords: List of words destined to filter out the tweets containing them
+    :return: DataFrame with the tweets containing the keywords
+    """
     if keywords:
         df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
         if stopwords:
@@ -79,6 +117,13 @@ def filter_by_topic(df, keywords, stopwords):
 # Funcition to filter by subtopic:
 
 def filter_by_subtopic(df, keywords2, stopwords2):
+    """
+    Given a previously filtered DataFrame the function returns the dataframe filtered according to the new subtopic of interest
+
+    :param keywords2: List of words acting as key to filter the dataframe
+    :param stopwords2: List of words destined to filter out the tweets that contain them
+    :return: DataFrame with the tweets containing the keywords
+    """
     if keywords2:
         df = df[df['Texto'].str.contains("|".join(keywords2), case=False).any(level=0)]
         if stopwords2:
@@ -88,6 +133,13 @@ def filter_by_subtopic(df, keywords2, stopwords2):
 # Function to filter by interest:
 
 def filter_by_interest(df, interest):
+    """
+    Given a non filtered DataFrame the function returns the dataframe filtered by the column interest
+
+    :param df: DataFrame with all the tweets
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: DataFrame containing the tweets filtered by the selected interest
+    """
     if interest is str:
         df = df[df['Marca'] == interest]
     if interest is list:
@@ -98,9 +150,19 @@ def filter_by_interest(df, interest):
 
 # Calculate Mentions network graph:
 
-def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+def get_cites(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing tweets the function returns those tweets belonging to the citations type, removing the retweets.
+    The function also applies the filtering processes
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Nested lists containing normal tweet, not retweets, and user who wrote the tweet
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -116,21 +178,44 @@ def get_cites(filename, keywords=None, stopwords=None, keywords2=None, stopwords
 
 # Calculate RT network graph:
 
-def get_retweets(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = filename
+def get_retweets(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets the function returns all those tweets which are retweets (RT:@).
+    It also applies the filtering procces
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Nested lists containing the retweet and the user who retweeted it
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # Se copia a un dataframe de trabajo
+    dfRT = df[['Usuario', 'Texto', 'Fecha']].copy()  # copied to work df
     idx = dfRT['Texto'].str.contains('RT @', na=False)
-    dfRT = dfRT[idx]  # Se seleccionan sólo las filas con RT
-    subset = dfRT[['Usuario', 'Texto']]  # Se descarta la fecha
-    retweetEdges = [list(x) for x in subset.to_numpy()]  # Se transforma en una lista
+    dfRT = dfRT[idx]  # selecting rows with RT:@
+    subset = dfRT[['Usuario', 'Texto']]  # date discarded
+    retweetEdges = [list(x) for x in subset.to_numpy()]  # transform to list
     return retweetEdges
 
 # Function to extract as list all the types of tweets, use specially for hashtag analysis (with get_edgesMain):
 
 def get_all(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns all the tweet and the user who wrote or
+    retweeted it in a nested list
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Nested lists containing tweet and user
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -139,9 +224,15 @@ def get_all(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, 
     list_text = df_text['Texto'].to_numpy()
     return list_text
 
-# Function to extract edges from RTs and Mentions:
+# Function to extract edges from RTs, mentions and all:
 
 def get_edges(values):
+    """
+    Given a list of lists containing tweets or retweets and users the function returns the edges to create a network
+
+    :param values: List of lists with the tweet and user
+    :return: List of lists containing the user and the @ inside the tweet
+    """
     edges = []
     for row in values:
         reg = re.search('@(\w+)', row[1])
@@ -153,12 +244,24 @@ def get_edges(values):
     return edges
 
 
-## COde to create a bar graph os most used hastags in RTs:
+# Code to create a bar graph of most used hashtags in RTs:
+
 # Selection of rows only with RTs and creation of a list containing the texts:
 
 
-def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = filename
+def get_hashtagsRT(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets the function returns a list containing the different texts that are
+    retweets in order to find the hashtags (#) inside them
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: List with the retweets
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -171,34 +274,56 @@ def get_hashtagsRT(filename, keywords=None, stopwords=None, keywords2=None, stop
 # Obtain hashtags used in Text:
 
 def get_edgesHashRT(values):
-    edges = []
+    """
+    Given a list containing retweets, the function finds all the hashtags inside the text
+    :param values: list with the retweets
+    :return: list with all the hashtags in these retweets
+    """
+    hashtags = []
     for row in values:
         match = re.findall('#(\w+)', row)
         for hashtag in match:
-            edges.append(hashtag)
-    return edges
+            hashtags.append(hashtag)
+    return hashtags
 
 # Organisation of hashtags by usage and creation of a list containing number of appearances:
 
-def prepare_hashtags(list, stopwords=None):
+def prepare_hashtags(hashtags, stopwords=None):
+    """
+    Given a list of hashtags, the function returns the number of appearances of each hashtags and a list of unique hashtags
+    :param hashtags: list of hashtags
+    :param stopwords: Word or list of words destined to be filtered out from the list of hashtags
+    :return: Ordered list with the number of appearances of each hashtag and a list of unique hashtags
+    """
     citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    list = [x.lower() for x in list]
-    list = [word for word in list if word not in citsci_words]
-    list = [word for word in list if word not in stopwords]
-    list = np.unique(list, return_counts=True)
-    list = sorted((zip(list[1], list[0])), reverse=True)
-    sortedNumberHashtags, sortedHashtagsRT = zip(*list)
+    hashtags = [x.lower() for x in hashtags]
+    hashtags = [word for word in hashtags if word not in citsci_words]
+    hashtags = [word for word in hashtags if word not in stopwords]
+    hashtags = np.unique(hashtags, return_counts=True)
+    hashtags = sorted((zip(hashtags[1], hashtags[0])), reverse=True)
+    sortedNumberHashtags, sortedHashtagsRT = zip(*hashtags)
     return sortedNumberHashtags, sortedHashtagsRT
 
 
 # Code to visualise the graph of hashtags in RTs:
 
-def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = filename
+def get_hashtagsRT2(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a list of lists containing the retweets and the
+    users who retweeted them, in order to find the hashtags inside those retweets
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: List of lists, where each list contains user and retweet
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    dfHashtagsRT = df[['Usuario', 'Texto']]
+    dfHashtagsRT = df[['Usuario', 'Texto']].copy()
     idx = dfHashtagsRT['Texto'].str.match('RT @', na=False)
     dfHashtagsRT = dfHashtagsRT[idx]
     listHashtagsRT = [list(x) for x in dfHashtagsRT.to_numpy()]
@@ -206,6 +331,11 @@ def get_hashtagsRT2(filename, keywords=None, stopwords=None, keywords2=None, sto
 
 
 def get_edgesHashRT2(values):
+    """
+    Given a list of list with users and retweets, the function returns the users and the hashtags in their retweets
+    :param values: List of lists with user and retweet
+    :return: List of lists, where each list contains user and hashtags
+    """
     edges = []
     for row in values:
         match = re.search('#(\w+)', row[1])
@@ -219,14 +349,31 @@ def get_edgesHashRT2(values):
 
 
 def combined_edges(x,y):
+    """
+    Given the edges from retweets and from mentions the function combine them both
+    :param x: Edges from retweets
+    :param y: Edges from mentions
+    :return: List of lists with the edges combined
+    """
     combined_edges = x + y
     return combined_edges
 
-## Code to show the graph of related hashtags hashtags out of RTs. Shows hashtags related to each other
+## Code to show the graph of related hashtags out of RTs. Shows hashtags related to each other
 
 
-def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = filename
+def get_hashtagsmain(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a list containing all the mentions
+    from the DataFrame
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: List with all the tweets which are mentions
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -239,6 +386,11 @@ def get_hashtagsmain(filename, keywords=None, stopwords=None, keywords2=None, st
     return listMainHashtags
 
 def mainHashtags(values):
+    """
+
+    :param values:
+    :return:
+    """
     stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     mainHashtags = []
     aristasHashtags = []
@@ -268,9 +420,19 @@ def prepare_hashtags2(list):
 
 # Creation of the graph of most used hashtags (related to user):
 
-def get_hashtagsmain2(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df.drop([78202], axis=0)
+def get_hashtagsmain2(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame with all the tweets, the function returns a list of list in which each list contains
+    the user and the written tweet
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: List of lists, each list contains user, written tweet
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -283,6 +445,12 @@ def get_hashtagsmain2(filename, keywords=None, stopwords=None, keywords2=None, s
     return listMainHashtags
 
 def get_edgesmain2(values):
+    """
+    Given a list of edges, the function returns the hashtags inside the tweet and relates them to the user
+
+    :param values: List of lists containing the edges (user, tweet)
+    :return: List of lists, in each list the user and the hashtag used by them is stored
+    """
     stop_words = [['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana','CitizenScience']]
     edges = []
     for row in values:
@@ -297,17 +465,28 @@ def get_edgesmain2(values):
 # Creation of the graph of most used hashtags out of RTs(use get_hashtagsmain()):
 
 def get_edgesMain(values):
-    edges = []
+    """
+    Given a list of tweets, the function returns the hashtags inside those tweets
+    :param values: List of tweets
+    :return: List with the hashtags inside the tweets
+    """
+    hashtags = []
     for row in values:
         match = re.findall('#(\w+)', row.lower())
         for hashtag in match:
-            edges.append(hashtag)
-    return edges
+            hashtags.append(hashtag)
+    return hashtags
 
 # Hashtags from the Bot:
 botwords=['airpollution', 'luftdaten', 'fijnstof', 'waalre', 'pm2', 'pm10']
 
 def prepare_hashtagsmain(list, stopwords=None):
+    """
+    Given a list of hashtags, the function returns the number of appearances of each hashtag and a unique list of hashtags
+    :param list: List of hashtags
+    :param stopwords: List of words destined to filter out the desired hashtags from the list
+    :return: Ordered list with the number of appearances of each hashtag and a list of unique hashtags
+    """
     citsci_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
     lista = [x.lower() for x in list]
     lista = [word for word in lista if word not in citsci_words]
@@ -436,6 +615,15 @@ def nx2gt(nxG):
 # Function to extarct indegree, outdegree, eigenvector and betweenness stored in csv:
 
 def csv_degval(Digraph, n, filename):
+    """
+    Given a Networkx directed graph, the function returns a CSV file containing the centrality measures of
+    the graph (Indegree, Outdegree, Betweenness and Eigenvector) sorted by indegree
+
+    :param Digraph: Networkx directed graph
+    :param n: Number of users to store in the csv
+    :param filename: Name for the CSV file
+    :return: CSV file with the users, centrality measures and rank based of those measures, sorted by the indegree
+    """
     list_values = []
     outdegrees2 = dict(Digraph.out_degree())
     indegrees = dict(Digraph.in_degree())
@@ -469,6 +657,15 @@ def csv_degval(Digraph, n, filename):
 
 
 def csv_Outdegval(Digraph, n, filename):
+    """
+    Given a Networkx directed graph, the function returns a CSV file containing the centrality measures of the
+    graph (Indegree, Outdegree, Betweenness and Eigenvector) sorted by Outdegree
+
+    :param Digraph: Networkx directed graph
+    :param n: Number of users to store in the csv
+    :param filename: Name for the CSV file
+    :return: CSV file with the users, centrality measures and rank based of those measures, sorted by the Outdegree
+    """
     outdegrees = dict(Digraph.out_degree())
     indegrees = dict(Digraph.in_degree())
     centrality = dict(nx.eigenvector_centrality(Digraph))
@@ -512,9 +709,19 @@ def csv_Outdegval(Digraph, n, filename):
 ## Functions to obtain elements for two mode:
 # RTs:
 
-def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    edges = []
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+def get_twomodeRT(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing al the tweets, the function returns a bipartite graph with the users and the
+    retweets as nodes. The retweets are displayed as weighted nodes
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Networkx bipartite graph
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -551,9 +758,21 @@ def get_twomodeRT(filename, keywords=None, stopwords=None, keywords2=None, stopw
 
 # Obtaining components for two mode for hashtags outside RTs:
 
-def get_twomodeHashMain(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
+def get_twomodeHashMain(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, filter_hashtags=None):
+    """
+    Given a DataFrame with all the tweets, the function returns a networkx bipartite graph with
+    the users and hashtags (outside retweets) as nodes
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param filter_hashtags: Boolean, to remove the predefined citizen science most common hashtags
+    :return: Networkx bipartite graph
+    """
     edges = []
-    df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -617,9 +836,21 @@ def get_twomodeHashMain(filename, keywords=None, stopwords=None, keywords2=None,
 
 # Function to obtain the components for the two mode for hashtags in RTs:
 
-def get_twomodeHashRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None,
+def get_twomodeHashRT(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None,
                       interest=None, filter_hashtags=None):
-    df = pd.read_csv(filename, sep=';', error_bad_lines=False, encoding='utf-8')
+    """
+     Given a DataFrame with all the tweets, the function returns a networkx bipartite graph with the
+     users and hashtags (inside retweets) as nodes
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param filter_hashtags: Boolean, to remove the predefined citizen science most common hashtags
+    :return: Networkx bipartite graph
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -684,13 +915,25 @@ def get_twomodeHashRT(filename, keywords=None, stopwords=None, keywords2=None, s
 
 # Wordcloud function for main hashtags:
 
-def wordcloudmain(filename, keywords=None, stopwords=None, interest=None ):
-    hashtags =[]
+def wordcloudmain(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None ):
+    """
+    Given a DataFrame containing all the tweets, the function returns a wordcloud with the hashtags
+    (outside retweets) displayed by frequency
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Wordcloud with the hashtags by frequency
+    """
+    hashtags = []
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df = filter_by_interest(df, interest)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
-    df = df[['Usuario', 'Texto']]
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df[df['Texto'].str.match('RT @')]
     df = df.drop(idx.index)
@@ -717,14 +960,26 @@ def transform_format(val):
         return val
 
 
-def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
+def wordcloud_mainhtlogo(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a wordcloud with the hashtags
+    (outside retweets) displayed by frequency
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param image: Image file to plot the wordcloud inside
+    :return: Wordcloud inside desired image with the hashtags by frequency
+    """
     hashtags =[]
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df = filter_by_interest(df, interest)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    df = df[['Usuario', 'Texto']]
+    df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df[df['Texto'].str.match('RT @')]
     df = df.drop(idx.index)
@@ -754,14 +1009,25 @@ def wordcloud_mainhtlogo(filename, keywords=None, stopwords=None, keywords2=None
 
 # Wordlcoud for hashtags in the RTs:
 
-def wordcloudRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None ):
+def wordcloudRT(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None ):
+    """
+    Given a DataFrame containing all the tweets, the function returns a wordcloud with the hashtags
+    (inside retweets) displayed by frequency
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Wordcloud with the hashtags by frequency
+    """
     hashtags =[]
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df = filter_by_interest(df, interest)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    df = df[['Usuario', 'Texto']]
+    df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
     df = df[idx]
@@ -779,14 +1045,26 @@ def wordcloudRT(filename, keywords=None, stopwords=None, keywords2=None, stopwor
     plt.tight_layout(pad=0)
     plt.show()
 
-def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
+def wordcloudRT_logo(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, image=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a wordcloud with the hashtags
+    (inside retweets) displayed by frequency
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param image: Image file to plot the wordcloud inside
+    :return: Wordcloud inside desired image with the hashtags by frequency
+    """
     hashtags = []
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
-    df = pd.read_csv(filename, sep=';', encoding='latin-1', error_bad_lines=False)
-    df = df = filter_by_interest(df, interest)
+    df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    df = df[['Usuario', 'Texto']]
+    df = df[['Usuario', 'Texto']].copy()
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
     df = df[idx]
@@ -819,7 +1097,24 @@ def wordcloudRT_logo(filename, keywords=None, stopwords=None, keywords2=None, st
 # Calculation of most used words:
 # The function uses the column Text, we can select the number of words plotted:
 
-def most_common(df):
+def most_common(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a dictionary with the most used words and
+    the number of appearances, a list of these words and a list with the number of times these words appear
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Tuples dict containing word and number of times, list with the words and list with the times these words appear
+    """
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df[['Usuario', 'Texto']].copy()
+    df = df.dropna()
     subset = df['Texto']
     subset = subset.dropna()
     words = " ".join(subset).lower().split()
@@ -869,7 +1164,23 @@ def most_common(df):
 
 # Top most used words in wordcloud:
 
-def most_commonwc(df):
+def most_commonwc(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, the function returns a wordcloud with the most used words in these tweets
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Wordcloud with the most used words displayed in it
+    """
+    df = filter_by_interest(df, interest)
+    df = filter_by_topic(df, keywords, stopwords)
+    df = filter_by_subtopic(df, keywords2, stopwords2)
+    df = df[['Usuario', 'Texto']].copy()
+    df = df.dropna()
     subset = df['Texto']
     subset = subset.dropna()
     words = " ".join(subset).lower().split()
@@ -919,9 +1230,16 @@ def most_commonwc(df):
 # Temporal series
 # Selection of days between RTs or main texts:
 
-def main_or_RT_days(filename, RT=None):
-    df = filename
-    df = df[['Fecha', 'Usuario', 'Texto']]
+def main_or_RT_days(df, RT=None):
+    """
+    Given a DataFrame with all the tweets, the function extracts all the dates for retweets or main tweets :param df:
+    DataFrame with all the tweets
+
+    :param RT: Boolean, whether to obtain the dates for retweets or main tweets
+    :return: Subset containing the user, retweets or main tweets and formatted dates. Pandas series containing the
+    sorted dates
+    """
+    df = df[['Fecha', 'Usuario', 'Texto']].copy()
     df = df.dropna()
     if RT == True:
         idx = df['Texto'].str.contains('RT @', na=False)
@@ -943,9 +1261,14 @@ def main_or_RT_days(filename, RT=None):
 
 # Selection of days of both types of tweets, use with get_all():
 
-def all_days(filename):
-    df = filename
-    df = df[['Fecha', 'Usuario', 'Texto']]
+def all_days(df):
+    """
+    Given a DataFrame containing all the tweets, the function extracts all the dates of these tweets
+
+    :param df: DataFrame containing the tweets
+    :return: Subset containing the user, tweets and formatted dates. Pandas series containing the sorted dates
+    """
+    df = df[['Fecha', 'Usuario', 'Texto']].copy()
     subset = df.dropna()
     subset['Fecha'] = pd.to_datetime(subset['Fecha'], errors='coerce')
     subset = subset.dropna()
@@ -964,7 +1287,19 @@ def all_days(filename):
 # sortedMH (main hashtags) or sortedHT (RT) obtained with listHT/listHRT- get_edgesMain/
 # get_EdgesHashRT- preparehashtagsmain/preparehashtags:
 
-def plottemporalserie(days, df, elements, title, x=None, y=None):
+def plottemporalserie(days, df, elements, title=None, x=None, y=None):
+    """
+    Given a list of dates, a DataFrame containing all the tweets and a list of hashtags the function returns a
+    figure representing the temporal evolution of use of these hashtags
+
+    :param days: Pandas series of dates
+    :param df: DataFrame containing the tweets
+    :param elements: List of hashtags obtained from a filtered DataFrame
+    :param title: Optional, title for the figure
+    :param x: Number, position in list of the hashtag to plot first in the figure
+    :param y: Number, last hashtag position desired to plot in the figure
+    :return: Figure representing the use of hashtags through the time
+    """
     numHashtag = []
     for hashtag in elements[x:y]:
         numPerDay = []
@@ -995,7 +1330,18 @@ def plottemporalserie(days, df, elements, title, x=None, y=None):
 
 # plot temporal series of one hashtag of our interest (variable name):
 
-def one_hastag_temporalseries(df, elements, days, name, title):
+def one_hastag_temporalseries(df, elements, days, name, title=None):
+    """
+    Given a list of dates, a DataFrame containing all the tweets and a list of hashtags the function returns a figure
+    representing the temporal evolution of use of a desired hashtag
+
+    :param df: DataFrame containing the tweets
+    :param elements: List of hashtags obtained from a filtered DataFrame
+    :param days: Pandas series of dates
+    :param name: Name of the hashtag to plot
+    :param title: Optional, title for the figure
+    :return: Figure representing the use of one hashtag through the time
+    """
     numHashtag = []
     for i in elements:
         if i == name:
@@ -1028,8 +1374,24 @@ start_time = time.time()
 
 
 def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, Impact=None, Opinion=None, n=None):
+    """
+    Given a DataFrame containing all the tweets, this function returns a CSV containing the users with higher
+    impact/opinion in the dataset according to the retweets, it also plots a bar chart with the top users
+    in impact/opinion
+
+    :param filename: Path to DataFrame
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param Impact: Boolean, whether to select impact or not
+    :param Opinion: Boolean, wheter to select opinion or not
+    :param n: Number of users to plot in the bar chart
+    :return: CSV with the users sorted by impact/opinion. Bar chart with the top users by impact/opinion
+    """
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False, decimal=',', dtype={'Impacto':'float64'})
-    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']]
+    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']].copy()
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1069,9 +1431,24 @@ def impact_opinionRT(filename, keywords=None, stopwords=None, keywords2=None, st
 
 
 def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, Impact=None, Opinion=None, n=None):
+    """
+    Given a DataFrame containing all the tweets, this function returns a CSV containing the users with higher
+    impact/opinion in the dataset outside the retweets, it also plots a bar chart with the top users in impact/opinion
+
+    :param filename: Path to DataFrame
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :param Impact: Boolean, whether to select impact or not
+    :param Opinion: Boolean, whether to select opinion or not
+    :param n: Number of users to plot in the bar chart
+    :return: CSV with the users sorted by impact/opinion. Bar chart with the top users by impact/opinion
+    """
     df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False, decimal=',',
                      dtype={'Impacto': 'float64'})
-    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']]
+    df = df[['Texto', 'Usuario', 'Opinion', 'Impacto']].copy()
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1093,6 +1470,7 @@ def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stop
             df = df.sort_values('Opinion', ascending=False)
             df = df.drop_duplicates(subset='Texto', keep='first')
             subset = df[['Usuario', 'Texto', 'Opinion']]
+
     CSV = subset[:50].to_csv('top50 tweets by ' + w + '.csv', sep=';', index=False, decimal='.', encoding='utf-8')
     lista = [list(x) for x in subset.to_numpy()]
     df_Users = pd.DataFrame(lista, columns=['User', 'Texto', 'Values'])
@@ -1107,15 +1485,31 @@ def impact_opinion(filename, keywords=None, stopwords=None, keywords2=None, stop
 
 analyser = SentimentIntensityAnalyzer()
 def sentiment_analyzer_scores(sentence):
-        score = analyser.polarity_scores(sentence)
-        return score
+    """
+    Vader sentiment analyser for a sentence
+    :param sentence: A text
+    :return: Score of sentiment for the text
+    """""
+    score = analyser.polarity_scores(sentence)
+    return score
 
-def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
+def sentiment_analyser(df,keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets,the function returns a CSV containing the user and the score
+    for each tweet from Vader sentiment
+
+    :param df: A DataFrame containing all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: CSV with the columns User, Text and Sentiment
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    df = df[['Texto', 'Usuario']]
+    df = df[['Texto', 'Usuario']].copy()
     df = df.dropna()
     Users = df['Usuario']
     Texto = df['Texto']
@@ -1133,9 +1527,17 @@ def sentiment_analyser(filename,keywords=None, stopwords=None, keywords2=None, s
     CSV = df_sentiment.to_csv('vaderSentiment.csv', sep=';', decimal='.', encoding='utf-8')
     return CSV
 
-# Plotbar and csv with tweets and users with higer sentiment:
+# Plotbar and csv with tweets and users with higher sentiment, read the general sentiment analysis CSV previously created:
 
 def sentiment_resultsRT(filename, n=None):
+    """
+    Given the sentiment analysis CSV created with VaderSentiment, this function returns a barplot with the top users
+    in sentiment inside the retweets. It also stores a CSV with the top 50 retweets in sentiment
+
+    :param filename: Path to the VaderSentiment CSV
+    :param n: Number of users to plot in the chart
+    :return: Barchart with the top users in sentiment. CSV with the top 50 retweets in sentiment
+    """
     df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     df_sentiment = df_sentiment[['Texto', 'compound']]
     idx = df_sentiment['Texto'].str.contains('RT @', na=False)
@@ -1161,6 +1563,14 @@ def sentiment_resultsRT(filename, n=None):
     return df_arrobas
 
 def sentiment_results(filename, n=None):
+    """
+    Given the VaderSentiment CSV, this function returns a barplot with the top users in sentiment inside the retweets.
+    It also stores a CSV with the top 50 tweets in sentiment
+
+    :param filename: Path to the VaderSentiment CSV
+    :param n: Number of users to plot in the chart
+    :return: Barchart with the top users in sentiment. CSV with the top 50 tweets in sentiment
+    """
     df_sentiment = pd.read_csv(filename, sep=';', encoding='utf-8', error_bad_lines=False)
     idx = df_sentiment[df_sentiment['Texto'].str.contains('RT @', na=False)]
     df_sentiment = df_sentiment.drop(idx.index)
@@ -1179,6 +1589,15 @@ def sentiment_results(filename, n=None):
 # Combination of both subsets and ultimate calculation of users with higher Sentiment by Vader:
 
 def combined_vader(subset1, subset2, n=None):
+    """
+    Given the subsets from RT Vadersentiment analysis and main tweets Vadersentiment analysis, this function combines
+    both datasets and returns a barchart with the top users between the two types of tweets
+
+    :param subset1: RTs subset
+    :param subset2: Main tweets subset
+    :param n: Number of users to plot in the figure
+    :return: Barchart with the top desired number of users in Vader Sentiment
+    """
     frames = [subset1, subset2]
     vader_df = pd.concat(frames, axis=0)
     vader_df = vader_df.groupby('User', as_index=False).mean()
@@ -1191,6 +1610,12 @@ def combined_vader(subset1, subset2, n=None):
 # First function, weight adittion as dict:
 
 def make_weightedDiGraph(edges):
+    """
+    Given a list of edges, this function returns a networkx directed graph with the weighted edges
+
+    :param edges: List of edges
+    :return: Networkx directed graph (DiGraph) with the weighted edges calculated
+    """
     edges_tuple = [tuple(x) for x in edges]
     G = nx.DiGraph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
     return G
@@ -1198,6 +1623,12 @@ def make_weightedDiGraph(edges):
 # Second function to add weight as third element in tuple (vertex, vertex, weight):
 
 def weighted_DiGraph(edges):
+    """
+    Given a list of edges, this function returns a networkx directed graph with the weighted edges
+
+    :param edges: List of edges
+    :return: Networkx directed graph (Digraph) with the weighted edges calculated
+    """
     for element in edges:
         element.append(1)
 
@@ -1235,18 +1666,35 @@ def weighted_DiGraph(edges):
 # Weight adittion to Graphs:
 
 def weight_Graph(edges):
+    """
+    Given a list of edges, this function returns a networkx graph with the weighted edges
+
+    :param edges: List of edges
+    :return: Networkx graph with the weighted edges calculated
+    """
     edges_tuple = [tuple(x) for x in edges]
     G = nx.Graph((x, y, {'weight': v}) for (x, y), v in Counter(edges_tuple).items())
     return G
 
 # DF wit the calculation of mean, median, and sd of Impact and Opinion:
 
-def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
-    df = filename
+def dataframe_statistics(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, this function returns a new DataFrame containing the main statistical
+    calculations around the original DataFrame
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: DataFrame with the main statistical calculations from the DataFrame with tweets
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
-    df = df[['Opinion', 'Impacto']]
+    df = df[['Opinion', 'Impacto']].copy()
     df = df.dropna()
     df['Opinion'] = df['Opinion'].replace(',', '.', regex=True).astype(float)
     mean_opinion = round((df['Opinion'].mean()),2)
@@ -1265,6 +1713,14 @@ def dataframe_statistics(filename, keywords=None, stopwords=None, keywords2=None
 
 
 def graph_structural_analysis(Graph):
+    """
+    Given a Networkx Graph, this function returns a DataFrame which contains the main statistical calculations
+    (number of nodes, number of edges, density, average shortest path, average path, clustering,
+    transitivity and diameter) from the Network
+
+    :param Graph: Networkx Graph
+    :return: DataFrame with the statistical calculations
+    """
     n_nodes = nx.number_of_nodes(Graph)
     n_edges = nx.number_of_edges(Graph)
     density = nx.density(Graph)
@@ -1295,6 +1751,12 @@ def graph_structural_analysis(Graph):
 #edge weight distribution:
 
 def edge_weight_distribution(Graph):
+    """
+    Given a networkx graph with weighted nodes, this function returns a scatterplot with the distribution of weights
+
+    :param Graph: Networkx Graph
+    :return: Scatterplot with weight distribution
+    """
     dict = nx.get_edge_attributes(Graph, 'weight')
     peso = dict.values()
     counter = Counter(peso)
@@ -1321,6 +1783,18 @@ def edge_weight_distribution(Graph):
 # TFIDF wordcloud:
 
 def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame containing all the tweets, this function returns a wordcloud with the most important words,
+    calculated with the TF-IDF method, displayed by frequency
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Wordcloud with the most relevant words according to TF-IDF calculation
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1383,6 +1857,18 @@ def tfidf_wordcloud(df, keywords=None, stopwords=None, keywords2=None, stopwords
 # k core graphs:
 
 def kcore_Graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
+    """
+    Given a DataFrame with all the tweets, this function returns a trimmed networkx graph according to the k-core
+    decomposition of graphs
+
+    :param df: DataFrame with all the tweets
+    :param keywords: List of words acting as key to filter the DataFrame
+    :param stopwords: List of words destined to filter out the tweets that contain them
+    :param keywords2: List of words acting as key to filter the DataFrame according to a subtopic
+    :param stopwords2: List of words destined to filter out the tweets that contain them according to a subtopic
+    :param interest: Active interest from the different categories available from the Lynguo tool
+    :return: Networkx Graph trimmed by networkx k-core algorithm
+    """
     df = filter_by_interest(df, interest)
     df = filter_by_topic(df, keywords, stopwords)
     df = filter_by_subtopic(df, keywords2, stopwords2)
@@ -1418,6 +1904,14 @@ def kcore_Graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=No
 # Add an atribute to nodes in bipartite graph:
 
 def add_attribute(df, category=None):
+    """
+    Given a DataFrame with the tweets, users and a category associated to a topic, this function returns a weighted
+    networkx graph with the attribute from the category added to the nodes
+
+    :param df: DataFrame with the tweets, users and category
+    :param category: Name of the column category associated to a topic
+    :return: Weighted networkx graph with the attribute added to the nodes
+    """
     df = df[['Usuario', 'Texto', category]]
     df = df.dropna()
     idx = df['Texto'].str.contains('RT @', na=False)
