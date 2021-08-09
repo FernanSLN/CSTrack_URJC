@@ -1,27 +1,45 @@
 import base64
 import dash
 import pandas as pd
-import dash_utils
 import dash_table
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-import generate_utils as gu
 from dash.dependencies import Input, Output, State
-import style
-from generate_utils import filter_by_topic
-import map_utils as mu
+
 from webweb import Web
-import communities_utils as cu
 import hashlib
-import berttopic_utils as bt
-from submenus import submenu_1, submenu_2, submenu_3, submenu_4, submenu_5, submenu_6, submenu_7
 import datetime
-import config
+
+try:
+    import berttopic_utils as bt
+    import submenus
+    import dash_utils
+    import communities_utils as cu
+    from generate_utils import filter_by_topic
+    import map_utils as mu
+    import config
+    import generate_utils as gu
+    import style
+except ModuleNotFoundError:
+    import application.cstrack_dash.berttopic_utils as bt
+    import application.cstrack_dash.submenus as submenus
+    import application.cstrack_dash.dash_utils as dash_utils
+    import application.cstrack_dash.communities_utils as cu
+    from application.cstrack_dash.generate_utils import filter_by_topic
+    import application.cstrack_dash.map_utils as mu
+    import application.cstrack_dash.config as config
+    import application.cstrack_dash.generate_utils as gu
+    import application.cstrack_dash.style as style
 
 
-
-if __name__ == "__main__":
+def create_dashboard(server=None):
+    if server:
+        base_string = "/dashapp"
+        logo = "/static/dashapp/assets/cstrack_logo.png"
+    else:
+        base_string = ""
+        logo = app.get_asset_url("cstrack_logo.png")
     com_algorithm = "louvain"
     df_map = dash_utils.get_map_df()
     df = pd.read_csv(config.TWEET_DATASET, sep=';', encoding='latin-1', error_bad_lines=False)
@@ -52,15 +70,22 @@ if __name__ == "__main__":
     g_communities = cu.get_communities_representative_graph(G, communities)
     kcore_g = dash_utils.kcore_graph(df=df)
     two_mode_g = dash_utils.get_two_mode_graph(df)"""
-
+    
+    submenu_1, submenu_2, submenu_3, submenu_4, submenu_5, submenu_6, submenu_7 = submenus.create_submenus(base_string)
     # link fontawesome to get the chevron icons
     FA = "https://use.fontawesome.com/releases/v5.8.1/css/all.css"
-    app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
+    if not server is None:
+        app = dash.Dash(server=server, routes_pathname_prefix="/dashapp/",external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
+    else:
+        app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP, FA])
     app.config.suppress_callback_exceptions = True
-
+    if server:
+        logo = "/static/dashapp/assets/cstrack_logo.png"
+    else:
+        logo = app.get_asset_url("cstrack_logo.png")
     sidebar = html.Div(
         [
-            dbc.Col(html.Img(src=app.get_asset_url('cstrack_logo.png'), height='50px')),
+            dbc.Col(html.Img(src=logo, height='50px')),
             html.Hr(),
             html.P('Available graphs', className='lead'),
             dbc.Nav([dbc.NavLink('CS-Track stats', href='/',
@@ -103,11 +128,10 @@ if __name__ == "__main__":
             Output(f"submenu-{i}", "className"),
             [Input(f"submenu-{i}-collapse", "is_open")],
         )(set_navitem_class)
-
-
+        
     @app.callback(Output("page-content", "children"), [Input("url", "pathname")])
     def render_page_content(pathname):
-        if pathname == "/":
+        if pathname == (base_string + "/"):
             html_plot = html.Div(children=[
                 dcc.Loading(
                     # style={"height":"200px","font-size":"100px","margin-top":"500px", "z-index":"1000000"},
@@ -137,7 +161,7 @@ if __name__ == "__main__":
                 ),
             ]),
             return html_plot
-        elif pathname == "/hashtags/all":
+        elif pathname == (base_string + "/hashtags/all"):
             print("PATH 1")
             controls = dash_utils.get_controls_rt("input-key-all", "hashtag-number-all")
             """graph_fig = dbc.Col(dcc.Graph(id='graph_all_hashtags', figure=dash_utils.get_figure(df_all_h[0:10])), md=8)
@@ -766,6 +790,12 @@ if __name__ == "__main__":
             # documents = bt.get_cleaned_documents(df_filtered)
             # new_model, new_topics, new_probs = bt.create_bert_model(documents)
             return bt.get_intertopic_distance(new_model), bt.get_topics_bar(new_model)
+            
+    return app.server, app
+
+
+if __name__ == "__main__":
+    server, app = create_dashboard()
     print("HI")
     app.run_server(host="0.0.0.0",port=6123, debug=False)
 

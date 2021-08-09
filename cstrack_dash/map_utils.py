@@ -1,6 +1,9 @@
+""" This module provide the functionality to create geomaps from given DataFrames
+"""
+
 import plotly.express as px
 
-#philipps visualiation maps
+
 
 def get_map_stats_by_country(df, type="tweets"):
     result = df.groupby(["iso_3", "continent", "country"])[type].sum().reset_index(name=type)
@@ -8,8 +11,8 @@ def get_map_stats_by_country(df, type="tweets"):
     fig = px.scatter_geo(result, locations="iso_3", width=1500, height=768,
                          color="continent",
                          hover_name="country",
-                         size_max = 50,
-                         size=type # size of markers, "pop" is one of the columns of gapminder
+                         size_max=50,
+                         size=type  # size of markers, "pop" is one of the columns of gapminder
                          )
     print("crea figura")
     return fig

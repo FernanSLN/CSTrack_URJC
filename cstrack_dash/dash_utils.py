@@ -3,7 +3,7 @@ It also provides some extra functionality to anonymize usernames and accessing d
 
 """
 
-import generate_utils as utils
+
 import pandas as pd
 import plotly.express as px
 import dash_bootstrap_components as dbc
@@ -20,7 +20,13 @@ import hashlib
 from collections import Counter
 from datetime import date
 from functools import lru_cache
-import config
+
+try:
+    import generate_utils as utils
+    import config
+except ModuleNotFoundError:
+    import application.cstrack_dash.generate_utils as utils
+    import application.cstrack_dash.config as config
 
 
 def get_hash_name_list(nodes):
