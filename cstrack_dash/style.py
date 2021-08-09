@@ -1,3 +1,5 @@
+"""Module to create the different styles of Dash components
+"""
 SIDEBAR_STYLE = {
     "position": "fixed",
     "top": 0,

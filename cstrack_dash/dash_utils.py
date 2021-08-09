@@ -1,4 +1,9 @@
-import generate_utils as utils
+"""  This module is used mainly to generate Dash components, such as filters or figures.
+It also provides some extra functionality to anonymize usernames and accessing data located in a database.
+
+"""
+
+
 import pandas as pd
 import plotly.express as px
 import dash_bootstrap_components as dbc
@@ -16,99 +21,40 @@ from collections import Counter
 from datetime import date
 from functools import lru_cache
 
+try:
+    import generate_utils as utils
+    import config
+except ModuleNotFoundError:
+    import application.cstrack_dash.generate_utils as utils
+    import application.cstrack_dash.config as config
 
-# Custom function to create an edge between node x and node y, with a given text and width
-def make_edge(x, y, text):
-    return go.Scatter(x=x,
-                      y=y,
-                      line=dict(width=1,
-                                color='cornflowerblue'),
-                      hoverinfo='text',
-                      text=([text]),
-                      mode='lines')
-
-
-def get_graph_figure(G, i=0):
-    print("hello")
-    pos = nx.spring_layout(G, iterations=10)
-    print("Positions given")
-    for n, p in pos.items():
-        G.nodes[n]['pos'] = p
-
-    edge_trace = go.Scatter(
-        x=[],
-        y=[],
-        line=dict(width=0.5, color='#888'),
-        hoverinfo='none',
-        mode='lines')
-    count = 0
-    for edge in G.edges():
-        x0, y0 = G.nodes[edge[0]]['pos']
-        x1, y1 = G.nodes[edge[1]]['pos']
-        edge_trace['x'] += tuple([x0, x1, None])
-        edge_trace['y'] += tuple([y0, y1, None])
-        count += 1
-
-    node_trace = go.Scatter(
-        x=[],
-        y=[],
-        text=[],
-        mode='markers',
-        hoverinfo='text',
-        marker=dict(
-            showscale=True,
-            colorscale='RdBu',
-            reversescale=True,
-            color=[],
-            size=15,
-            colorbar=dict(
-                thickness=10,
-                title='Node Connections',
-                xanchor='left',
-                titleside='right'
-            ),
-            line=dict(width=0)))
-    count = 0
-    for node in G.nodes():
-        x, y = G.nodes[node]['pos']
-        node_trace['x'] += tuple([x])
-        node_trace['y'] += tuple([y])
-        count += 1
-
-    for node, adjacencies in enumerate(G.adjacency()):
-        node_trace['marker']['color'] += tuple([len(adjacencies[1])])
-        node_info = str(adjacencies[0]) + ' # of connections: ' + str(len(adjacencies[1]))
-        node_trace['text'] += tuple([node_info])
-
-    fig = go.Figure(data=[edge_trace, node_trace],
-                    layout=go.Layout(
-                        title='Community ' + str(i + 1),
-                        titlefont=dict(size=16),
-                        showlegend=False,
-                        hovermode='closest',
-                        margin=dict(b=20, l=5, r=5, t=40),
-                        annotations=[dict(
-                            text="No. of connections",
-                            showarrow=False,
-                            xref="paper", yref="paper")],
-                        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False)))
-
-    print("Finish creating figure")
-    return fig
 
 def get_hash_name_list(nodes):
+    """Function to anonymize a list of users.
+
+    :param nodes: list with the user names
+    :return: list with the user names anonymized
+    """
     dict_names = {}
     for node in nodes:
         dict_names[node] = hashlib.md5(str(node).encode()).hexdigest()
+
     return dict_names
 
 
-def get_community_graph(g, community, i=0):
+def get_community_graph(g, communities, i=0):
+    """
+    Function to create a graph given a list of users (communities) that are connected.
+
+    :param g: The graph that contains the information of the whole network
+    :param communities: A list of communities. Each community contains a list of user names
+    :param i: The community for which we want to create a graph
+    :return: The graph that represents the requested community
+    """
     c = nx.DiGraph()
-    for node in community[i]:
+    for node in communities[i]:
         list_edges = g.edges(node)
-        list_edges = [edge for edge in list_edges if edge[1] in community[i]]
+        list_edges = [edge for edge in list_edges if edge[1] in communities[i]]
         c.add_edges_from(list_edges)
     print(c.nodes)
     dict_names = get_hash_name_list(c.nodes)
@@ -117,6 +63,13 @@ def get_community_graph(g, community, i=0):
     return c
 
 def get_communities(g, algorithm="louvain"):
+    """
+    Function to calculate the communities of a given network.
+
+    :param g: Graph that represents the network
+    :param algorithm: The algorithm to create the communities (louvain or propagation)
+    :return: A list of communities. Each community is represented as a list of user names
+    """
     n_g = nk.nxadapter.nx2nk(g)
     idmap = dict((u, id) for (id, u) in zip(g.nodes(), range(g.number_of_nodes())))
     if algorithm == "louvain":
@@ -133,7 +86,17 @@ def get_communities(g, algorithm="louvain"):
     list_communities = [community for community in list_communities if len(community) > 10]
     return list_communities
 
-def kcore_graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None, anonymize=False):
+def kcore_graph(df, keywords=None, stopwords=None, interest=None, anonymize=False):
+    """
+    Given a dataframe with tweets, users... creates a graph of retweets.
+
+    :param df: The dataframe containing the information
+    :param keywords: A list of words to get the tweets that contain those words
+    :param stopwords: A list of words to remove tweets that contain those words
+    :param interest: The interest (Lynguo filter)
+    :param anonymize: False if we want to get the user names and false if we want to anonymize them
+    :return: The graph
+    """
     df = utils.filter_by_interest(df, interest)
     df = utils.filter_by_topic(df, keywords, stopwords)
     dfRT = df[['Usuario', 'Texto']]
@@ -168,8 +131,14 @@ def kcore_graph(df, keywords=None, stopwords=None, keywords2=None, stopwords2=No
     return G_kcore
 
 
-def get_n_tweets(df):
-    base_date = df.iloc[0]["Date"]
+def get_single_counts(df):
+    """
+    Given a dataframe with the columns Date and Number it counts the increment (Tweets and Follows). For instance,
+    having 10-03-2021, 11-03-2021 as Dates and 10, 12 as counts it will return (10-03-2021, 10; 11-03-2021, 2).
+
+    :param df: A dataframe that must have the columns Date and Number
+    :return: A dataframe counting the increments
+    """
     base_count = df.iloc[0]["Number"]
     result = []
     for i, data in df.iterrows():
@@ -180,6 +149,12 @@ def get_n_tweets(df):
 
 
 def acumulate_retweets(df):
+    """
+    Given a dataframe with the columns Number and Date it accumulates the number (Counting total retweets).
+
+    :param df: A dataframe with the columns Date and Number
+    :return: A dataframe with the accumulated result per date.
+    """
     base_count = df.iloc[0]["Number"]
     result = []
     for i, data in df.iterrows():
@@ -190,18 +165,40 @@ def acumulate_retweets(df):
 
 
 def get_figure(df):
+    """
+    Given a dataframe where the appearance of each hashtag is counted, it creates a barplot to represent the results.
+
+    :param df: A dataframe with the columns Hashtags and Count
+    :return: A barplot representing the dataframe
+    """
     fig = px.bar(df, x="Hashtags", y="Count", barmode="group")
     fig.update_xaxes(tickangle=90)
     return fig
 
 
 def get_temporal_figure(df, n_hashtags=5):
+    """
+    Given a dataframe that contains the number of appearances of each hashtag in each day it creates a time series
+    figure to represent the results.
+
+    :param df: A dataframe with the name of the hastags, the date, and the number of appearances
+    :param n_hashtags: The number of hashtags that are wanted to be shown
+    :return: A time series figure representing the dataframe
+    """
     fig = px.line(df, x='date', y=df.columns[:n_hashtags])
     fig.update_layout(xaxis_tick0=df['date'][0], xaxis_dtick=86400000 * 15)
     return fig
 
 
 def get_cstrack_graph(df, type, title):
+    """
+    A function to create the different graphs for the cstrackproject twitter account.
+
+    :param df: A dataframe with the data
+    :param type: The type of graph that is wanted to be drawn (Retweets, Tweets, Followers)
+    :param title: The title of the graph
+    :return: A figure representing the results according to the given parameters.
+    """
     df_retweets = df[df["Type"] == type]
     if type == "Retweets":
         df_retweets = df_retweets.groupby(["Date"], as_index=False)["Number"].sum()
@@ -216,10 +213,10 @@ def get_cstrack_graph(df, type, title):
         print(df_retweets.dtypes)
         df_retweets["Date"] = pd.to_datetime(df_retweets['Date'], format="%d/%m/%Y").dt.date
         df_retweets = df_retweets.sort_values(by="Date")
-        df_retweets = get_n_tweets(df_retweets.drop_duplicates(subset=["Date"])).iloc[1:]
+        df_retweets = get_single_counts(df_retweets.drop_duplicates(subset=["Date"])).iloc[1:]
         fig = px.line(df_retweets, x="Date", y="Number", title=title)
     if type == "Followers":
-        single_follow_count = get_n_tweets(df_retweets)
+        single_follow_count = get_single_counts(df_retweets)
         fig = px.line(df_retweets, x="Date", y="Number", title=title)
         fig.add_trace(go.Scatter(x=df_retweets["Date"].tolist(), y=df_retweets["Number"].tolist(),
                                  mode="markers+text", textposition="top center", name="New followers",
@@ -228,9 +225,18 @@ def get_cstrack_graph(df, type, title):
     return fig
 
 
-def get_df_ts(df, days, elements):
+def get_df_ts(df, days, hashtags):
+    """
+    Given a DataFrame, a list of days and a list of hashtags it returns a Dataframe with the appearance of each hashtag
+    each day
+
+    :param df: Input Dataframe
+    :param days: A list of dates
+    :param elements: A list of hashtags
+    :return: DataFrame with the count for each hashtag each day
+    """
     numHashtag = []
-    for hashtag in elements[:100]:
+    for hashtag in hashtags[:100]:
         numPerDay = []
         for day in days:
             dfOneDay = df[df['Fecha'] == day]
@@ -239,13 +245,23 @@ def get_df_ts(df, days, elements):
         numHashtag.append(numPerDay)
     ts_df = pd.DataFrame()
     for i in range(0, len(numHashtag)):
-        ts_df[elements[i]] = numHashtag[i]
+        ts_df[hashtags[i]] = numHashtag[i]
     ts_df = ts_df.assign(date=days)
     return ts_df
 
 
-def get_rt_hashtags(df, k=None, stop=None, n_hashtags=10):
-    listHashtagsRT2 = utils.get_hashtagsRT(df, keywords=k, stopwords=stop)
+def get_rt_hashtags(df, keywords=None, stopwords=None, n_hashtags=10):
+    """
+    Given a DataFrame with Tweets it returns a DataFrame with the Hashtags and the number of times (Count) they have
+    been retweeted
+
+    :param df: A DataFrame with all the tweets
+    :param keywords: A list of words to filter the tweets
+    :param stopwords:  A list of words to filter the tweets
+    :param n_hashtags:  Number of hashtags to get
+    :return: A DataFrame counting the hashtags and the number of times they have been retweeted
+    """
+    listHashtagsRT2 = utils.get_hashtagsRT(df, keywords=keywords, stopwords=stopwords)
     edges = utils.get_edgesHashRT(listHashtagsRT2)
     # Con las stopwords eliminamos el bot:
     sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtags(edges)
@@ -253,52 +269,72 @@ def get_rt_hashtags(df, k=None, stop=None, n_hashtags=10):
     return df_hashtags
 
 
-def get_all_hashtags(df, k=None, stop=None, n_hashtags=10):
-    print(df)
-    hashmain = utils.get_hashtagsmain(df, keywords=k, stopwords=stop)
-    print("HASHMAIIIN")
-    print(hashmain)
+def get_all_hashtags(df, keywords=None, stopwords=None):
+    """
+    Given a DataFrame with Tweets it returns a DataFrame with the Hashtags and the number of times (Count) they appear.
+
+    :param df: A DataFrame with all the tweets
+    :param keywords: A list of words to filter the tweets
+    :param stopwords:  A list of words to filter the tweets
+    :return: A DataFrame counting the hashtags and the number of times they have appeared.
+    """
+    hashmain = utils.get_hashtagsmain(df, keywords=keywords, stopwords=stopwords)
     edges = utils.get_edgesMain(hashmain)
-    print("EDGEEEEEEEEEEEEEES")
-    print(edges)
     # Con las stopwords eliminamos el bot:
-    sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, stopwords=stop)
+    sortedNumberHashtags, sortedHashtagsmain = utils.prepare_hashtagsmain(edges, stopwords=stopwords)
     df_hashtags = pd.DataFrame(list(zip(sortedHashtagsmain, sortedNumberHashtags)), columns=["Hashtags", "Count"])
     return df_hashtags
 
 
-def get_all_temporalseries(df, k=None, stop=None):
+def get_all_temporalseries(df, keywords=None):
+    """
+    Given a DataFrame containing all the tweets the function returns a DataFrame with the hashtags and dates, a list
+    of dates and the hashtags sorted by number of appearances
+
+    :param df: DataFrame with all the tweets
+    :param keywords: Keywords to filter the DataFrame
+    :return: DataFrame with hastags and dates, a list of days and hashtags sorted by appearance
+    """
     df = df[['Usuario', 'Texto', 'Fecha']].copy()
-
     df = df.dropna()
-
     df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
-
     df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
-    print("DF Tras fechas")
-    print(df)
-    dias = utils.getDays(df)
-
-    listHt = utils.get_hashtagsmain(df, keywords=k)
+    days = utils.getDays(df)
+    listHt = utils.get_hashtagsmain(df, keywords=keywords)
     edges = utils.get_edgesMain(listHt)
     sortedNH, sortedMH = utils.prepare_hashtagsmain(edges)
-    return df, dias, sortedMH
+    return df, days, sortedMH
 
 
-def get_rt_temporalseries(df, k=None, stop=None):
+def get_rt_temporalseries(df, keywords=None):
+    """
+    Given a DataFrame containing all the tweets the function returns a DataFrame with the retweeted hashtags and dates, a list
+    of dates and the hashtags sorted by number of appearances
+
+    :param df: DataFrame with all the tweets
+    :param k: Keywords to filter the DataFrame
+    :return: DataFrame with hashtags and dates, a list of days and hashtags sorted by appearance
+    """
     df = df[['Usuario', 'Texto', 'Fecha']].copy()
-
     df = df.dropna()
     df = df[df['Fecha'].str.match('[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]\s[0-9][0-9]:[0-9][0-9]:[0-9][0-9]')]
     df["Fecha"] = pd.to_datetime(df['Fecha'], format="%Y-%m-%d %H:%M:%S").dt.date
     dias = utils.getDays(df)
-    listHt = utils.get_hashtagsRT(df, keywords=k)
+    listHt = utils.get_hashtagsRT(df, keywords=keywords)
     edges = utils.get_edgesHashRT(listHt)
     sortedNH, sortedMH = utils.prepare_hashtags(edges)
     return df, dias, sortedMH
 
 
 def wordcloudmain(df, keywords=None, stopwords=None, interest=None):
+    """
+    Given a DataFrame with all the tweets the function creates a Wordcloud with the words that appear the most.
+
+    :param df:  A DataFrame with all the tweets
+    :param keywords: A  list of words to filter the DataFrame
+    :param stopwords: A list of words to filter the DataFrame
+    :param interest: The interest to filter the DataFrame (Lynguo)
+    """
     hashtags = []
     stop_words = ['citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana', 'CitizenScience']
     df = df[['Usuario', 'Texto']]
@@ -322,6 +358,12 @@ def wordcloudmain(df, keywords=None, stopwords=None, interest=None):
 
 
 def get_graph_rt(df):
+    """
+    Given a Dataframe with Tweets and users it creates a Graph of retweets
+
+    :param df: A Dataframe containing the tweets and users
+    :return: A graph representing the network of retweets
+    """
     retweetList = utils.get_retweets(df)
     retweetEdges = utils.get_edges(retweetList)
     G = nx.Graph()
@@ -330,6 +372,12 @@ def get_graph_rt(df):
 
 
 def get_degrees(df):
+    """
+    Given a DataFrame with tweets and users it calculates different centrality measures.
+
+    :param df: A DataFrame with tweets and users
+    :return: A Dataframe with the centrality measures of the users
+    """
     from operator import itemgetter
     import datetime
     start = datetime.datetime.now()
@@ -342,7 +390,12 @@ def get_degrees(df):
 
 
 def get_twitter_info_df():
-    db = pymongo.MongoClient(host="f-l2108-pc09.aulas.etsit.urjc.es", port=21000)
+    """
+    A function to return the cstrackproject Twitter user stats
+
+    :return: A Dataframe with information about followers, retweets and tweets
+    """
+    db = pymongo.MongoClient(host=config.MONGODB_CONNECTION, port=21000)
     twitter_data = db["cstrack"]["cstrack_stats"]
     twitter_dict_list = list(twitter_data.find())
     df = pd.DataFrame(twitter_dict_list)
@@ -352,9 +405,23 @@ def get_twitter_info_df():
     return df
 
 def get_two_mode_graph(df, keywords=None):
+    """
+    Given a DataFrame containing all the tweets the function returns a two-mode graph connecting users with tweets
+
+    :param df:  A DataFrame with all the information
+    :param keywords: A list of words to filter the DataFrame
+    :return: A two-mode graph connecting users with tweets
+    """
     return utils.get_twomodeRT(df, keywords)
 
 def get_controls_community2(communities):
+    """
+    Given a list of communities, being each community a list of users, the function creates the filtering options for
+    the Dash visualization.
+
+    :param communities: A list of communities, being each community a list of usernames
+    :return: The filtering options for the Dash visualization.
+    """
     dropdown_options = []
     dropdown_options.append({"label": "all", "value": "all"})
     for i in range(0, len(communities)):
@@ -393,6 +460,11 @@ def get_controls_community2(communities):
     return controls
 
 def get_controls_activity():
+    """
+    Function to create the filtering options for the Geomap visualizations in Dash
+
+    :return: The filtering options for the Geomap visualizations.
+    """
     controls = dbc.Form(
         [
             dbc.FormGroup(
@@ -413,6 +485,13 @@ def get_controls_activity():
     return controls
 
 def get_controls_rt(number_id, keyword_id):
+    """
+    Given two ids, the function creates the filtering options for several Dash Visualizations
+
+    :param number_id: Id for the number input
+    :param keyword_id: Id for the text input
+    :return: The filtering options for the Dash visualization.
+    """
     today = date.today()
 
     controls = dbc.Form(
@@ -462,6 +541,12 @@ def get_controls_rt(number_id, keyword_id):
     return controls
 
 def get_controls_rt_g(keyword_id):
+    """
+    Given and id it creates the filtering options for the graph of retweets in Dash
+
+    :param keyword_id: Id of the text input
+    :return: The filtering options for the graph of retweets
+    """
     controls = dbc.Form(
         [
             dbc.FormGroup(
@@ -483,6 +568,12 @@ def get_controls_rt_g(keyword_id):
     return controls
 
 def get_topic_file(id):
+    """
+    Given an id it creates a dropbox to upload a file containing keywords (One keyword in each line)
+
+    :param id: The id of the button
+    :return: The button to upload a file
+    """
     upload_html = dcc.Upload(
         id=id,
         children=html.Div([
@@ -503,6 +594,15 @@ def get_topic_file(id):
     return upload_html
 
 def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
+    """
+    Given the ids for the different inputs, it creates the different filters for the time series visualization
+
+    :param number_id: Id for the number input (Number of hashtags to show)
+    :param keyword_id: Id for the list of keywords
+    :param dc_id: Id for the dropdown options (Search specific hashtags to show)
+    :param df_ts: The DataFrame with the hashtag count
+    :return:
+    """
     options = []
     for c in df_ts.columns[:-1]:
         options.append({"label": c, "value": c})
@@ -565,6 +665,13 @@ def get_controls_ts(number_id, keyword_id, dc_id, df_ts):
 
 
 def set_loading(controls, dcc_graph):
+    """
+    Function to create a loading effect when filtering a graph
+
+    :param controls: The filters
+    :param dcc_graph: The figure that is being updated
+    :return: The element to embed the figure in in order to apply the loading effect
+    """
     SPINER_STYLE = {
         "margin-top": "25%",
         "width": "99%",
@@ -590,12 +697,25 @@ def set_loading(controls, dcc_graph):
     return loading
 
 def get_map_df():
-    con = pymongo.MongoClient("f-l2108-pc09.aulas.etsit.urjc.es", port=21000)
+    """
+    Function to get the information to create geomap visualizations
+
+    :return: A DataFrame with geographical information
+    """
+    con = pymongo.MongoClient(config.MONGODB_CONNECTION, port=21000)
     col = con["cstrack"]["geomap_full"]
     info = pd.DataFrame(list(col.find()))
     return info
 
 def get_controls_topics(number_id, keyword_id, topics):
+    """
+    Function to create the filtering options for the topic modelling visualization
+
+    :param number_id: The id for the number input (Number of topics to create)
+    :param keyword_id: The id for the text input (List of words to filter the dataframe)
+    :param topics: The number of topics.
+    :return:
+    """
     today = date.today()
 
     controls = dbc.Form(
