@@ -1,4 +1,0 @@
-.. _columns-inline:
-
-Inline Columns
-==============

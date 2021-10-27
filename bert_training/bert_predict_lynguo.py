@@ -1,14 +1,29 @@
 from transformers import BertTokenizer
+import bert_load_functions as blf
 from transformers import *
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 
-from utils import utils as u_cs
 
-model_save_path='./models/bert_model_v2.h5'
+def filter_by_topic(df, keywords, stopwords):
+    """
+    Given a DataFrame the function returns the dataframe filtered according the given keywords and stopwords
 
-df = pd.read_json('./tweets.json')
+    :param df: Dataframe with all the tweets
+    :param keywords: List of words acting as key to filter the dataframe
+    :param stopwords: List of words destined to filter out the tweets containing them
+    :return: DataFrame with the tweets containing the keywords
+    """
+    if keywords:
+        df = df[df['Texto'].str.contains("|".join(keywords), case=False).any(level=0)]
+        if stopwords:
+            df = df[~df['Texto'].str.contains("|".join(stopwords), case=False).any(level=0)]
+    return df
+
+model_save_path='./models/bert_model_v3.h5'
+
+df = pd.read_json('./tweets_v4.json')
 df.category = df["category"].map(lambda x: 1 if x == "ODS1" or x == "goal1" or x == "SDG1" else x)
 df.category = df.category.map(lambda x: 2 if x == "ODS2" or x == "goal2" or x == "SDG2" else x)
 df.category = df.category.map(lambda x: 3 if x == "ODS3" or x == "goal3" or x == "SDG3" else x)
@@ -42,11 +57,7 @@ trained_model.compile(loss=loss,optimizer=optimizer, metrics=[metric])
 trained_model.load_weights(model_save_path)
 
 
-df_test = pd.read_csv("tweets_june2021.csv", sep=";", encoding="latin-1", error_bad_lines=False)
-with open("sdg_keys.txt", encoding="utf-8") as f:
-	list_keys = f.read().split("\n")
-df_test = u_cs.filter_by_topic(df_test, keywords=list_keys, stopwords=None)
-list_tweets = pd.concat([df_test["Texto"]], axis=0).astype("str")
+to_predict = blf.load_lynguo()
 sentences = []
 input_ids = []
 attention_masks = []
@@ -77,4 +88,4 @@ for i,c in enumerate(preds.logits):
 	print("DESCRIPTION", sentences[i])
 	
 df_test["SDG"] = category_list
-df_test.to_csv("tweets_with_category_bert_v2.csv")
+df_test.to_csv("tweets_with_category_bert_v3.csv")
