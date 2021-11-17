@@ -385,39 +385,23 @@ def get_hashtagsmain(df, keywords=None, stopwords=None, keywords2=None, stopword
     listMainHashtags = subset.to_numpy()
     return listMainHashtags
 
-def mainHashtags(values):
-    """
+def mainedges_hashtag(text_list):
+    edges = []
+    final_edges = []
 
-    :param values:
-    :return:
-    """
-    stop_words = ['#citizenscience', 'citizenscience', 'rt', 'citizen', 'science', 'citsci', 'cienciaciudadana']
-    mainHashtags = []
-    aristasHashtags = []
-    for row in values:
+    for row in text_list:
         match = re.findall('#(\w+)', row.lower())
-        length = len(match)
-    try:
         match = [word for word in match if word not in stop_words]
-    except ValueError:
-        pass
-    for index,hashtag in enumerate(match):
-        mainHashtags.append(hashtag)
-        if index | (length-2):
-            nextHashtags = match[index+1:length-1]
-            for nextHashtags in nextHashtags:
-                aristasHashtags.append([hashtag,nextHashtags])
-    return aristasHashtags
+        edges.append(match)
 
-def prepare_hashtags2(list):
-    mainHashtags = np.unique(list,return_counts=True)
-    mainHashtags = sorted((zip(mainHashtags[1], mainHashtags[0])), reverse=True)
-    sortedNumberHashtags, sortedMainHashtags = zip(*mainHashtags)
-    hashtagsOnce = [t[1] for t in mainHashtags if t[0] == 1]
-    hashtagsFinales = [hashtag for hashtag in list if hashtag[0] not in hashtagsOnce]
-    hashtagsFinales = [hashtag for hashtag in hashtagsFinales if hashtag[1] not in hashtagsOnce]
-    return hashtagsFinales
-
+    for item in edges:
+        if len(item) == 2:
+            final_edges.append((item[0], item[1]))
+        else:
+            for i in range(len(item)):
+                for j in range(i + 1, len(item)):
+                    final_edges.append((item[i], item[j]))
+    return final_edges
 # Creation of the graph of most used hashtags (related to user):
 
 def get_hashtagsmain2(df, keywords=None, stopwords=None, keywords2=None, stopwords2=None, interest=None):
